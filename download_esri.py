@@ -1,24 +1,27 @@
 import requests
 import json
-from shapely.geometry import MultiPolygon
-import shapely.speedups
 
-base_url = 'http://rest.lakecountyil.gov/ArcGIS/rest/services/MapsOnline_Public/MapServer/6/query'
+base_url = 'http://gis.co.hennepin.mn.us/ArcGIS/rest/services/Maps/PROPERTY/MapServer/0'
+output_file = 'output.geojson'
 
-sr = 102100
-fields = 'OBJECTID,PLA_NUMBER,PLA_NUMSUF,PLA_DIRECT,PLA_NAME,PLA_TYPE,PLA_SUFFIX'
-min_x = -9818339.8047
-max_x = -9769252.5764
-min_y = 5183812.7058
-max_y = 5235532.6064
+metadata = requests.get(base_url, params={'f': 'json'}).json()
+bounds = metadata['extent']
+fields = metadata['fields']
+geom_type = metadata['geometryType']
+saved = set()
 
-cells_x = 50
-cells_y = 50
+# Look for a field that to use as the deduping ID
+oid_field = next(field['name'] for field in fields if field['type'] == 'esriFieldTypeOID')
 
-output_file = 'lake_county_addrs.osm'
+if oid_field:
+    print "Using '%s' as the OID field to dedupe." % oid_field
+else:
+    print "WARNING: Couldn't find the OID field to dedupe on, so you'll have duplicate data probably."
 
-x_step = (max_x - min_x) / cells_x
-y_step = (max_y - min_y) / cells_y
+cells_x = 3
+cells_y = 3
+x_step = (bounds['xmax'] - bounds['xmin']) / cells_x
+y_step = (bounds['ymax'] - bounds['ymin']) / cells_y
 
 def xfrange(start, stop=None, step=None):
     """Like range(), but returns list of floats instead
@@ -39,104 +42,28 @@ def xfrange(start, stop=None, step=None):
         yield cur
         cur += step
 
-road_types = {
-    'ALY': 'Alley',
-    'AVE': 'Avenue',
-    'BLVD': 'Boulevard',
-    'BND': 'Bend',
-    'CIR': 'Circle',
-    'CRES': 'Crescent',
-    'CT': 'Court',
-    'CV': 'Cove',
-    'DR': 'Drive',
-    'FLDS': 'Fields',
-    'HWY': 'Highway',
-    'IS': 'Island',
-    'LN': 'Lane',
-    'PARK': 'Park',
-    'PASS': 'Pass',
-    'PATH': 'Path',
-    'PKWY': 'Parkway',
-    'PL': 'Place',
-    'PLZ': 'Plaza',
-    'PT': 'Point',
-    'RD': 'Road',
-    'RDG': 'Ridge',
-    'ROW': 'Row',
-    'RUN': 'Run',
-    'SQ': 'Square',
-    'ST': 'Street',
-    'TER': 'Terrace',
-    'TRL': 'Trail',
-    'VW': 'View',
-    'WAY': 'Way',
-    'XING': 'Crossing',
+def esrijson2geojson(geom_type, esrijson):
+    geojson = {}
+    if geom_type == 'esriGeometryPolygon':
+        geojson['type'] = 'Polygon'
+    elif geom_type == 'esriGeometryPolyline':
+        geojson['type'] = 'LineString'
+    elif geom_type == 'esriGeometryPoint':
+        geojson['type'] = 'Point'
+    else:
+        print "I don't know how to convert esrijson of type '%s'." % geom_type
+
+    geojson['coordinates'] = esrijson['rings']
+    return geojson
+
+geojson_doc = {
+    "type": "FeatureCollection",
+    "features": []
 }
 
-dirs = {
-    'N': 'North',
-    'NE': 'Northeast',
-    'NW': 'Northwest',
-    'W': 'West',
-    'E': 'East',
-    'S': 'South',
-    'SE': 'Southeast',
-    'SW': 'Southwest',
-}
-
-def to_osm_tags(attrs):
-    if not (attrs and attrs['PLA_NUMBER'] and attrs['PLA_NUMBER'] != '0' and attrs['PLA_NUMBER'] != ' '):
-        return None
-
-    house_num = attrs['PLA_NUMBER'].strip()
-    house_suffix = attrs.get('PLA_NUMSUF')
-    if house_suffix and house_suffix != ' ':
-        house_num += ' ' + house_suffix
-
-    direction = None
-    if attrs['PLA_DIRECT'] and attrs['PLA_DIRECT'] != ' ':
-        direction = dirs[attrs['PLA_DIRECT']]
-
-    street = attrs['PLA_NAME'].strip().title()
-
-    street_type = None
-    if attrs['PLA_TYPE'] and attrs['PLA_TYPE'] != ' ':
-        street_type = road_types[attrs['PLA_TYPE']]
-
-    street_suffix = None
-    if attrs['PLA_SUFFIX'] and attrs['PLA_SUFFIX'] != ' ':
-        street_suffix = dirs[attrs['PLA_SUFFIX']]
-
-    streetname = []
-    if direction:
-        streetname.append(direction)
-    streetname.append(street)
-    if street_type:
-        streetname.append(street_type)
-    if street_suffix:
-        streetname.append(street_suffix)
-    streetname = ' '.join(streetname)
-
-    tags = {
-        'addr:housenumber': house_num,
-        'addr:street': streetname,
-        'addr:street:name': street,
-        'addr:street:type': street_type,
-    }
-    if direction:
-        tags['addr:street:prefix'] = direction
-    return tags
-
-shapely.speedups.enable()
-
-saved = set()
-node_id = -1
 i = 0
-
-f = open(output_file, 'w')
-f.write('<osm version="0.6">\n')
-for x in xfrange(min_x, max_y, x_step):
-    for y in xfrange(min_y, max_y, y_step):
+for x in xfrange(bounds['xmin'], bounds['xmax'], x_step):
+    for y in xfrange(bounds['ymin'], bounds['ymax'], y_step):
         bbox = (x, y, x + x_step, y + y_step)
 
         geometry = json.dumps({
@@ -154,45 +81,37 @@ for x in xfrange(min_x, max_y, x_step):
         args = {
             'geometry': geometry,
             'geometryType': 'esriGeometryPolygon',
-            'inSR': sr,
+            'inSR': bounds['spatialReference']['wkid'],
             'spatialRel': 'esriSpatialRelIntersects',
             'returnCountOnly': 'false',
             'returnIdsOnly': 'false',
             'returnGeometry': 'true',
             'outSR': 4326,
-            'outFields': fields,
+            'outFields': '*',
             'f': 'json'
         }
 
-        resp = requests.get(base_url, params=args)
+        resp = requests.get(base_url + '/query', params=args)
+        print resp.url
         for feature in resp.json()['features']:
             attrs = feature['attributes']
 
-            oid = int(attrs['OBJECTID'])
+            oid = attrs.get(oid_field)
 
             if oid in saved:
                 continue
 
             geom = feature['geometry']
-            outer = geom['rings'][0]
-            inners = geom['rings'][1:]
-            shape = MultiPolygon([(outer, inners)])
 
-            try:
-                tags = to_osm_tags(attrs)
-            except KeyError, e:
-                print "%s %s" % (shape.centroid, attrs)
-                raise e
+            geojson_doc['features'].append({
+                "type": "Feature",
+                "properties": attrs,
+                "geometry": esrijson2geojson(geom_type, geom)
+            })
 
-            if not tags:
-                continue
-
-            f.write('<node id="%s" lat="%0.7f" lon="%0.7f" visible="true">\n' % (node_id, shape.centroid.y, shape.centroid.x))
-            for (k,v) in tags.iteritems():
-                f.write(' <tag k="%s" v="%s"/>\n' % (k, v))
-            f.write('</node>\n')
             saved.add(oid)
-            node_id = node_id - 1
         i += 1
-        print "%s/%s done" % (i, (cells_x * cells_y))
-f.write('</osm>\n')
+        print "%s/%s cells, %s features." % (i, (cells_x * cells_y), len(saved))
+
+with open(output_file, 'w') as f:
+    json.dump(geojson_doc, f)
