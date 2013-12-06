@@ -1,7 +1,7 @@
 import requests
 import json
 
-base_url = 'http://gis.co.hennepin.mn.us/ArcGIS/rest/services/Maps/PROPERTY/MapServer/0'
+base_url = 'http://gisweb.co.aitkin.mn.us/arcgis/rest/services/MapLayers/MapServer/3'
 output_file = 'output.geojson'
 
 metadata = requests.get(base_url, params={'f': 'json'}).json()
@@ -18,8 +18,8 @@ if oid_field:
 else:
     print "WARNING: Couldn't find the OID field to dedupe on, so you'll have duplicate data probably."
 
-cells_x = 3
-cells_y = 3
+cells_x = 5
+cells_y = 5
 x_step = (bounds['xmax'] - bounds['xmin']) / cells_x
 y_step = (bounds['ymax'] - bounds['ymin']) / cells_y
 
@@ -46,22 +46,25 @@ def esrijson2geojson(geom_type, esrijson):
     geojson = {}
     if geom_type == 'esriGeometryPolygon':
         geojson['type'] = 'Polygon'
+        geojson['coordinates'] = esrijson['rings']
     elif geom_type == 'esriGeometryPolyline':
-        geojson['type'] = 'LineString'
+        geojson['type'] = 'MultiLineString'
+        geojson['coordinates'] = esrijson['paths']
     elif geom_type == 'esriGeometryPoint':
         geojson['type'] = 'Point'
+        geojson['coordinates'] = [esrijson['x'], esrijson['y']]
     else:
         print "I don't know how to convert esrijson of type '%s'." % geom_type
 
-    geojson['coordinates'] = esrijson['rings']
     return geojson
 
-geojson_doc = {
-    "type": "FeatureCollection",
-    "features": []
-}
-
 i = 0
+
+f = open(output_file, 'w')
+f.write("""{
+    "type": "FeatureCollection",
+    "features": [\n""")
+
 for x in xfrange(bounds['xmin'], bounds['xmax'], x_step):
     for y in xfrange(bounds['ymin'], bounds['ymax'], y_step):
         bbox = (x, y, x + x_step, y + y_step)
@@ -92,7 +95,6 @@ for x in xfrange(bounds['xmin'], bounds['xmax'], x_step):
         }
 
         resp = requests.get(base_url + '/query', params=args)
-        print resp.url
         for feature in resp.json()['features']:
             attrs = feature['attributes']
 
@@ -103,15 +105,15 @@ for x in xfrange(bounds['xmin'], bounds['xmax'], x_step):
 
             geom = feature['geometry']
 
-            geojson_doc['features'].append({
+            f.write(json.dumps({
                 "type": "Feature",
                 "properties": attrs,
                 "geometry": esrijson2geojson(geom_type, geom)
-            })
+            }))
+            f.write(',\n')
 
             saved.add(oid)
         i += 1
         print "%s/%s cells, %s features." % (i, (cells_x * cells_y), len(saved))
 
-with open(output_file, 'w') as f:
-    json.dump(geojson_doc, f)
+f.write("]\n}\n")
