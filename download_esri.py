@@ -8,6 +8,7 @@ metadata = requests.get(base_url, params={'f': 'json'}).json()
 bounds = metadata['extent']
 fields = metadata['fields']
 geom_type = metadata['geometryType']
+max_records = metadata.get('maxRecordCount', 500)
 saved = set()
 
 bbox_file = open('bboxes.geojson', 'w')
@@ -127,7 +128,7 @@ def split_bbox(bbox):
 def scrape_a_bbox(bbox, saved):
     features = fetch_features(base_url, bbox)
 
-    if len(features) == metadata['maxRecordCount']:
+    if len(features) == max_records:
         print "Retrieved exactly the maximum record count. Splitting this box and retrieving the children."
 
         bboxes = split_bbox(bbox)
