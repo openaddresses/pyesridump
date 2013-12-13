@@ -10,6 +10,11 @@ fields = metadata['fields']
 geom_type = metadata['geometryType']
 saved = set()
 
+bbox_file = open('bboxes.geojson', 'w')
+bbox_file.write("""{
+    "type": "FeatureCollection",
+    "features": [\n""")
+
 # Look for a field that to use as the deduping ID
 oid_field = next(field['name'] for field in fields if field['type'] == 'esriFieldTypeOID')
 
@@ -18,8 +23,9 @@ if oid_field:
 else:
     print "WARNING: Couldn't find the OID field to dedupe on, so you'll have duplicate data probably."
 
-cells_x = 5
-cells_y = 5
+cells_x = 3
+cells_y = 3
+total_cells = cells_x * cells_y
 x_step = (bounds['xmax'] - bounds['xmin']) / cells_x
 y_step = (bounds['ymax'] - bounds['ymin']) / cells_y
 
@@ -58,6 +64,95 @@ def esrijson2geojson(geom_type, esrijson):
 
     return geojson
 
+def fetch_features(url, bounds):
+
+    geometry = json.dumps({
+        "rings": [
+            [
+                [bounds[0], bounds[1]],
+                [bounds[0], bounds[3]],
+                [bounds[2], bounds[3]],
+                [bounds[2], bounds[1]],
+                [bounds[0], bounds[1]]
+            ]
+        ]
+    })
+
+    args = {
+        'geometry': geometry,
+        'geometryType': 'esriGeometryPolygon',
+        'spatialRel': 'esriSpatialRelIntersects',
+        'returnCountOnly': 'false',
+        'returnIdsOnly': 'false',
+        'returnGeometry': 'true',
+        'outSR': 4326,
+        'outFields': '*',
+        'f': 'json'
+    }
+
+    resp = requests.get(base_url + '/query', params=args)
+    return resp.json()['features']
+
+def write_features(features, saved):
+    for feature in features:
+        attrs = feature['attributes']
+
+        oid = attrs.get(oid_field)
+
+        if oid in saved:
+            continue
+
+        geom = feature['geometry']
+
+        f.write(json.dumps({
+            "type": "Feature",
+            "properties": attrs,
+            "geometry": esrijson2geojson(geom_type, geom)
+        }))
+        f.write(',\n')
+
+        saved.add(oid)
+
+def split_bbox(bbox):
+    (x1, y1, x2, y2) = bbox
+    half_width = (x2 - x1) / 2.0
+    half_height = (y2 - y1) / 2.0
+    return [
+        (x1,                y1,                 x1 + half_width,    y1 + half_height),
+        (x1 + half_width,   y1,                 x2,                 y1 + half_height),
+        (x1,                y1 + half_height,   x1 + half_width,    y2),
+        (x1 + half_width,   y1 + half_height,   x2,                 y2),
+    ]
+
+def scrape_a_bbox(bbox, saved):
+    features = fetch_features(base_url, bbox)
+
+    if len(features) == metadata['maxRecordCount']:
+        print "Retrieved exactly the maximum record count. Splitting this box and retrieving the children."
+
+        bboxes = split_bbox(bbox)
+
+        for child_bbox in bboxes:
+            scrape_a_bbox(child_bbox, saved)
+    else:
+        bbox_file.write(json.dumps({
+            "type": "Feature",
+            "properties": {},
+            "geometry": {
+                "type": "Polygon",
+                "coordinates": [[
+                    [bbox[0], bbox[1]],
+                    [bbox[0], bbox[3]],
+                    [bbox[2], bbox[3]],
+                    [bbox[2], bbox[1]],
+                    [bbox[0], bbox[1]]
+                ]]
+            }
+        }))
+        bbox_file.write(',\n')
+
+        write_features(features, saved)
+
 i = 0
 
 f = open(output_file, 'w')
@@ -69,51 +164,11 @@ for x in xfrange(bounds['xmin'], bounds['xmax'], x_step):
     for y in xfrange(bounds['ymin'], bounds['ymax'], y_step):
         bbox = (x, y, x + x_step, y + y_step)
 
-        geometry = json.dumps({
-            "rings": [
-                [
-                    [bbox[0], bbox[1]],
-                    [bbox[0], bbox[3]],
-                    [bbox[2], bbox[3]],
-                    [bbox[2], bbox[1]],
-                    [bbox[0], bbox[1]]
-                ]
-            ]
-        })
+        scrape_a_bbox(bbox, saved)
 
-        args = {
-            'geometry': geometry,
-            'geometryType': 'esriGeometryPolygon',
-            'inSR': bounds['spatialReference']['wkid'],
-            'spatialRel': 'esriSpatialRelIntersects',
-            'returnCountOnly': 'false',
-            'returnIdsOnly': 'false',
-            'returnGeometry': 'true',
-            'outSR': 4326,
-            'outFields': '*',
-            'f': 'json'
-        }
-
-        resp = requests.get(base_url + '/query', params=args)
-        for feature in resp.json()['features']:
-            attrs = feature['attributes']
-
-            oid = attrs.get(oid_field)
-
-            if oid in saved:
-                continue
-
-            geom = feature['geometry']
-
-            f.write(json.dumps({
-                "type": "Feature",
-                "properties": attrs,
-                "geometry": esrijson2geojson(geom_type, geom)
-            }))
-            f.write(',\n')
-
-            saved.add(oid)
         i += 1
-        print "%s/%s cells, %s features." % (i, (cells_x * cells_y), len(saved))
+        print "%s/%s cells, %s features." % (i, total_cells, len(saved))
 
 f.write("]\n}\n")
+
+bbox_file.write("]\n}\n")
