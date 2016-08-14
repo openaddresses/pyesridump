@@ -8,8 +8,8 @@ from esridump.errors import EsriDownloadError
 class EsriDumper(object):
     def __init__(self, url, parent_logger=None, extra_query_args=None, extra_headers=None, timeout=None):
         self._layer_url = url
-        self._query_params = extra_query_args
-        self._headers = extra_headers
+        self._query_params = extra_query_args or {}
+        self._headers = extra_headers or {}
         self._http_timeout = timeout or 30
 
         if parent_logger:
@@ -25,17 +25,19 @@ class EsriDumper(object):
             self._logger.warning("Retrying %s without SSL verification", url)
             return requests.request(method, url, timeout=self._http_timeout, verify=False, **kwargs)
 
-    def _build_url(self, url):
-        return self._layer_url + url
+    def _build_url(self, url=None):
+        return self._layer_url + url if url else self._layer_url
 
-    def _build_query_args(self, query_args):
+    def _build_query_args(self, query_args=None):
         complete_args = dict(**self._query_params)
-        complete_args.update(query_args)
+        if query_args:
+            complete_args.update(query_args)
         return complete_args
 
-    def _build_headers(self, headers):
+    def _build_headers(self, headers=None):
         complete_headers = dict(**self._headers)
-        complete_headers.update(headers)
+        if headers:
+            complete_headers.update(headers)
         return complete_headers
 
     def _handle_esri_errors(self, response, error_message):
@@ -151,10 +153,61 @@ class EsriDumper(object):
         url = self._build_url('/query')
         headers = self._build_headers()
         response = self._request('GET', url, params=query_args, headers=headers)
-        oid_data = self.handle_esri_errors(response, "Could not retrieve object IDs")
+        oid_data = self._handle_esri_errors(response, "Could not retrieve object IDs")
         return oid_data['objectIds']
 
-    def download(self, fields=None):
+    GEOM_TYPE_MAPPING = {
+        'esriGeometryPoint': 'Point',
+        'esriGeometryMultipoint': 'MultiPoint',
+        'esriGeometryPolygon': 'Polygon',
+        'esriGeometryPolyline': 'LineString',
+    }
+
+    def _build_geojson(self, geom_type, esri_feature):
+        if 'geometry' not in esri_feature:
+            raise TypeError("No geometry for feature")
+
+        geom = {
+            "properties": esri_feature['attributes'],
+            "type": "Feature",
+            "geometry": {
+                "type": self.GEOM_TYPE_MAPPING[geom_type],
+                "coordinates": []
+            }
+        }
+
+        if geom_type == 'esriGeometryPoint':
+            geom['geometry']['coordinates'] = [
+                esri_feature['geometry']['x'],
+                esri_feature['geometry']['y']
+            ]
+        elif geom_type == 'esriGeometryMultipoint':
+            geom['geometry']['coordinates'] = [
+                [pt[0], pt[1]]
+                for pt in esri_feature['geometry']['points']
+            ]
+        elif geom_type == 'esriGeometryPolygon':
+            geom['geometry']['coordinates'] = [
+                [
+                    [pt[0], pt[1]]
+                    for pt in ring
+                ]
+                for ring in esri_feature['geometry']['rings']
+            ]
+        elif geom_type == 'esriGeometryPolyline':
+            geom['geometry']['coordinates'] = [
+                [
+                    [pt[0], pt[1]]
+                    for pt in path
+                ]
+                for path in esri_feature['geometry']['paths']
+            ]
+        else:
+            raise KeyError("Don't know how to convert ESRI geometry type {}".format(geom_type))
+
+        return geom
+
+    def iter(self, fields=None):
         metadata = self.get_metadata()
         row_count = self.get_feature_count()
         query_fields = fields
@@ -253,7 +306,7 @@ class EsriDumper(object):
             try:
                 response = self._request('POST', query_url, headers=headers, data=query_args)
 
-                data = self.handle_esri_errors(response, "Could not retrieve this chunk of objects")
+                data = self._handle_esri_errors(response, "Could not retrieve this chunk of objects")
             except socket.timeout as e:
                 raise EsriDownloadError("Timeout when connecting to URL", e)
             except ValueError as e:
@@ -269,4 +322,10 @@ class EsriDumper(object):
             features = data.get('features')
 
             for feature in features:
-                yield self._build_geojson(geometry_type, feature)
+                try:
+                    yield self._build_geojson(geometry_type, feature)
+                except TypeError:
+                    self._logger.warning("Skipping feature without geometry")
+
+    def get_all(self, fields=None):
+        return [r for r in self.iter(fields)]
