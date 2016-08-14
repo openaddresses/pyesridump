@@ -1,6 +1,7 @@
 import logging
 import requests
 import simplejson as json
+import socket
 
 from esridump.errors import EsriDownloadError
 
@@ -245,3 +246,27 @@ class EsriDumper(object):
                     })
                     page_args.append(query_args)
                 self._logger.info("Built %s requests using OID enumeration method", len(page_args))
+
+        query_url = self._build_url('/query')
+        headers = self._build_headers()
+        for query_args in page_args:
+            try:
+                response = self._request('POST', query_url, headers=headers, data=query_args)
+
+                data = self.handle_esri_errors(response, "Could not retrieve this chunk of objects")
+            except socket.timeout as e:
+                raise EsriDownloadError("Timeout when connecting to URL", e)
+            except ValueError as e:
+                raise EsriDownloadError("Could not parse JSON", e)
+            except Exception as e:
+                raise EsriDownloadError("Could not connect to URL", e)
+
+            error = data.get('error')
+            if error:
+                raise EsriDownloadError("Problem querying ESRI dataset with args {}. Server said: {}".format(query_args, error['message']))
+
+            geometry_type = data.get('geometryType')
+            features = data.get('features')
+
+            for feature in features:
+                yield self._build_geojson(geometry_type, feature)
