@@ -310,7 +310,6 @@ class EsriDumper(object):
 
             return
 
-
         page_args = []
 
         if metadata.get('supportsPagination') or \
