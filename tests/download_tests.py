@@ -267,3 +267,49 @@ class TestEsriDownload(unittest.TestCase):
         dump = EsriDumper(self.fake_url)
         with self.assertRaisesRegexp(EsriDownloadError, "Could not connect to URL"):
             dump.get_all()
+
+    def test_geo_queries_when_count_doesnt_work(self):
+        self.add_fixture_response(
+            '.*/\?f=json.*',
+            'us-il-cook/metadata.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-il-cook/count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*geometry=.*',
+            'us-il-cook/page-full.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*geometry=.*',
+            'us-il-cook/page-partial.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*geometry=.*',
+            'us-il-cook/page-partial.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*geometry=.*',
+            'us-il-cook/page-partial.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*geometry=.*',
+            'us-il-cook/page-partial.json',
+            method='GET',
+        )
+
+        dump = EsriDumper(self.fake_url)
+        data = dump.get_all()
+
+        # Note that this count is entirely fake because of the deduping happening
+        # This test is only designed to make sure we're splitting into smaller
+        # bounding boxes.
+
+        self.assertEqual(2, len(data))
