@@ -3,7 +3,7 @@
 from setuptools import setup, find_packages
 
 
-with open('README.me') as f:
+with open('README.md') as f:
     readme = f.read()
 
 with open('LICENSE') as f:
@@ -18,5 +18,8 @@ setup(
     author_email='ian.dees@gmail.com',
     url='https://github.com/openaddresses/pyesridump',
     license=license,
-    packages=find_packages(exclude=('tests', 'docs'))
+    packages=find_packages(exclude=('tests', 'docs')),
+    entry_points={
+        'console_scripts': ['esri2geojson=esridump.cli:main'],
+    }
 )
