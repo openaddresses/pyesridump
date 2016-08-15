@@ -111,6 +111,9 @@ class EsriDumper(object):
         url = self._build_url('/query')
         response = self._request('GET', url, params=query_args, headers=headers)
         count_json = self._handle_esri_errors(response, "Could not retrieve row count")
+        count = count_json.get('count')
+        if not count:
+            raise EsriDownloadError("Server doesn't support returnCountOnly")
         return count_json['count']
 
     def _find_oid_field_name(self, metadata):
@@ -211,12 +214,102 @@ class EsriDumper(object):
 
         return geom
 
-    def iter(self, fields=None):
-        metadata = self.get_metadata()
-        row_count = self.get_feature_count()
-        query_fields = fields
+    def _fetch_bounded_features(self, envelope):
+        query_args = self._build_query_args({
+            'geometry': json.dumps(envelope),
+            'geometryType': 'esriGeometryEnvelope',
+            'spatialRel': 'esriSpatialRelIntersects',
+            'returnCountOnly': 'false',
+            'returnIdsOnly': 'false',
+            'returnGeometry': 'true',
+            'outSR': 4326,
+            'outFields': '*',
+            'f': 'json'
+        })
+        headers = self._build_headers()
+        url = self._build_url('/query')
+        response = self._request('GET', url, params=query_args, headers=headers)
+        print response.url
+        features = self._handle_esri_errors(response, "Could not retrieve a section of features")
+        return features['features']
 
+    def _split_envelope(self, envelope):
+        half_width = (envelope['xmax'] - envelope['xmin']) / 2.0
+        half_height = (envelope['ymax'] - envelope['ymin']) / 2.0
+        return [
+            dict(
+                xmin=envelope['xmin'],
+                ymin=envelope['ymin'],
+                xmax=envelope['xmin'] + half_width,
+                ymax=envelope['ymin'] + half_height,
+            ),
+            dict(
+                xmax=envelope['xmin'] + half_width,
+                ymin=envelope['ymin'],
+                xmin=envelope['xmax'],
+                ymax=envelope['ymin'] + half_height,
+            ),
+            dict(
+                xmin=envelope['xmin'],
+                ymax=envelope['ymin'] + half_height,
+                xmax=envelope['xmin'] + half_width,
+                ymin=envelope['ymax'],
+            ),
+            dict(
+                xmax=envelope['xmin'] + half_width,
+                ymax=envelope['ymin'] + half_height,
+                xmin=envelope['xmax'],
+                ymin=envelope['ymax'],
+            ),
+        ]
+
+    def _scrape_an_envelope(self, envelope, max_records):
+        features = self._fetch_bounded_features(envelope)
+
+        if len(features) == max_records:
+            self._logger.info("Retrieved exactly the maximum record count. Splitting this box and retrieving the children.")
+
+            envelopes = self._split_envelope(envelope)
+
+            for child_envelope in envelopes:
+                for feature in self._scrape_an_envelope(child_envelope, max_records):
+                    yield feature
+        else:
+            for feature in features:
+                yield feature
+
+    def iter(self, fields=None):
+        query_fields = fields
+        metadata = self.get_metadata()
         page_size = min(1000, metadata.get('maxRecordCount', 500))
+        geometry_type = metadata.get('geometryType')
+
+        try:
+            row_count = self.get_feature_count()
+        except EsriDownloadError:
+            self._logger.info("Source does not support feature count")
+
+            # Use geospatial queries when none of the ID-based methods will work
+            oid_field_name = self._find_oid_field_name(metadata)
+
+            if not oid_field_name:
+                raise EsriDownloadError("Could not find object ID field name for deduplication")
+
+            bounds = metadata['extent']
+            saved = set()
+
+            for feature in self._scrape_an_envelope(bounds, page_size):
+                attrs = feature['attributes']
+                oid = attrs.get(oid_field_name)
+                if oid in saved:
+                    continue
+
+                yield self._build_geojson(geometry_type, feature)
+
+                saved.add(oid)
+
+            return
+
 
         page_args = []
 
@@ -322,7 +415,6 @@ class EsriDumper(object):
             if error:
                 raise EsriDownloadError("Problem querying ESRI dataset with args {}. Server said: {}".format(query_args, error['message']))
 
-            geometry_type = data.get('geometryType')
             features = data.get('features')
 
             for feature in features:
