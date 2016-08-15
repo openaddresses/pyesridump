@@ -168,7 +168,6 @@ class EsriDumper(object):
             raise TypeError("No geometry for feature")
 
         geom = {
-            "properties": esri_feature['attributes'],
             "type": "Feature",
             "geometry": {
                 "type": self.GEOM_TYPE_MAPPING[geom_type],
@@ -176,11 +175,16 @@ class EsriDumper(object):
             }
         }
 
+        attributes = esri_feature.get('attributes')
+        if attributes:
+            geom['properties'] = attributes
+
         if geom_type == 'esriGeometryPoint':
-            geom['geometry']['coordinates'] = [
-                esri_feature['geometry']['x'],
-                esri_feature['geometry']['y']
-            ]
+            if esri_feature['geometry'] and esri_feature['geometry']['x']:
+                geom['geometry']['coordinates'] = [
+                    esri_feature['geometry']['x'],
+                    esri_feature['geometry']['y']
+                ]
         elif geom_type == 'esriGeometryMultipoint':
             geom['geometry']['coordinates'] = [
                 [pt[0], pt[1]]
