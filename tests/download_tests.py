@@ -128,4 +128,61 @@ class TestEsriDownload(unittest.TestCase):
 
         self.assertEqual(15, len(data))
 
+    def test_oid_enumeration_when_statistics_doesnt_work(self):
+        self.add_fixture_response(
+            '.*/\?f=json.*',
+            'us-mi-kent/us-mi-kent-metadata.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-mi-kent/us-mi-kent-count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*outStatistics=.*',
+            'us-mi-kent/us-mi-kent-statistics.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-mi-kent/us-mi-kent-ids-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*query.*',
+            'us-mi-kent/us-mi-kent-0.json',
+            method='POST',
+        )
 
+        dump = EsriDumper(self.fake_url)
+        data = dump.get_all()
+
+        self.assertEqual(15, len(data))
+
+    def test_coerces_floats_to_integer(self):
+        self.add_fixture_response(
+            '.*/\?f=json.*',
+            'us-mo-columbia/us-mo-columbia-metadata.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-mo-columbia/us-mo-columbia-count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-mo-columbia/us-mo-columbia-ids-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*query.*',
+            'us-mo-columbia/us-mo-columbia-0.json',
+            method='POST',
+        )
+
+        dump = EsriDumper(self.fake_url)
+        data = dump.get_all()
+
+        self.assertEqual(43, len(data))
