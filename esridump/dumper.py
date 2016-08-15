@@ -229,7 +229,6 @@ class EsriDumper(object):
         headers = self._build_headers()
         url = self._build_url('/query')
         response = self._request('GET', url, params=query_args, headers=headers)
-        print response.url
         features = self._handle_esri_errors(response, "Could not retrieve a section of features")
         return features['features']
 
