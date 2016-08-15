@@ -4,6 +4,7 @@ import unittest
 import re
 
 from esridump.dumper import EsriDumper
+from esridump.errors import EsriDownloadError
 
 class TestEsriDownload(unittest.TestCase):
     def setUp(self):
@@ -16,13 +17,14 @@ class TestEsriDownload(unittest.TestCase):
         self.responses.stop()
         self.responses.reset()
 
-    def add_fixture_response(self, url_re, file, method='POST'):
+    def add_fixture_response(self, url_re, file, method='POST', **kwargs):
         with open(os.path.join('tests/fixtures', file), 'r') as f:
             self.responses.add(
                 method=method,
                 url=re.compile(url_re),
                 body=f.read(),
                 match_querystring=True,
+                **kwargs
             )
 
     def test_object_id_enumeration(self):
@@ -186,3 +188,82 @@ class TestEsriDownload(unittest.TestCase):
         data = dump.get_all()
 
         self.assertEqual(43, len(data))
+
+    def test_handles_timeout_error(self):
+        self.add_fixture_response(
+            '.*/\?f=json.*',
+            'us-mo-columbia/us-mo-columbia-metadata.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-mo-columbia/us-mo-columbia-count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-mo-columbia/us-mo-columbia-ids-only.json',
+            method='GET',
+        )
+        import socket
+        self.responses.add(
+            method='POST',
+            url=re.compile('.*query.*'),
+            body=socket.timeout(),
+        )
+
+        dump = EsriDumper(self.fake_url)
+        with self.assertRaisesRegexp(EsriDownloadError, "Timeout when connecting to URL"):
+            dump.get_all()
+
+    def test_handles_value_error(self):
+        self.add_fixture_response(
+            '.*/\?f=json.*',
+            'us-mo-columbia/us-mo-columbia-metadata.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-mo-columbia/us-mo-columbia-count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-mo-columbia/us-mo-columbia-ids-only.json',
+            method='GET',
+        )
+        self.responses.add(
+            method='POST',
+            url=re.compile('.*query.*'),
+            body=ValueError(),
+        )
+
+        dump = EsriDumper(self.fake_url)
+        with self.assertRaisesRegexp(EsriDownloadError, "Could not parse JSON"):
+            dump.get_all()
+
+    def test_handles_exception(self):
+        self.add_fixture_response(
+            '.*/\?f=json.*',
+            'us-mo-columbia/us-mo-columbia-metadata.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-mo-columbia/us-mo-columbia-count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-mo-columbia/us-mo-columbia-ids-only.json',
+            method='GET',
+        )
+        self.responses.add(
+            method='POST',
+            url=re.compile('.*query.*'),
+            body=Exception(),
+        )
+
+        dump = EsriDumper(self.fake_url)
+        with self.assertRaisesRegexp(EsriDownloadError, "Could not connect to URL"):
+            dump.get_all()
