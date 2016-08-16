@@ -13,7 +13,7 @@ class EsriDumper(object):
         self._http_timeout = timeout or 30
 
         if parent_logger:
-            self._logger = parent_logger.getLogger('esridump')
+            self._logger = parent_logger.getChild('esridump')
         else:
             self._logger = logging.getLogger('esridump')
 
