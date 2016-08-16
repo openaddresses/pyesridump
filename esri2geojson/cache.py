@@ -5,6 +5,8 @@ import os
 import socket
 import json
 import math
+from geomet import wkt
+import csv
 
 import requests
 
@@ -205,7 +207,6 @@ class EsriRestDownloadTask(DownloadTask):
                 'where': '1=1',
                 'geometryPrecision': 7,
                 'returnGeometry': 'true',
-                'outSR': 4326,
                 'outFields': ','.join(query_fields or ['*']),
                 'f': 'json',
             })
@@ -230,7 +231,6 @@ class EsriRestDownloadTask(DownloadTask):
                 ),
                 'geometryPrecision': 7,
                 'returnGeometry': 'true',
-                'outSR': 4326,
                 'outFields': ','.join(query_fields or ['*']),
                 'f': 'json',
             })
@@ -251,7 +251,6 @@ class EsriRestDownloadTask(DownloadTask):
                 'objectIds': ','.join(map(str, oid_chunk)),
                 'geometryPrecision': 7,
                 'returnGeometry': 'true',
-                'outSR': 4326,
                 'outFields': ','.join(query_fields or ['*']),
                 'f': 'json',
             })
@@ -278,6 +277,7 @@ class EsriRestDownloadTask(DownloadTask):
             seen_features.update(feature['attributes'][oid_field_name]
                                  for feature in data['features'])
 
+
     def bbox_features(self, query_url, query_fields, bbox, page_size):
         data = self.bbox_query(query_url, query_fields, bbox)
 
@@ -288,25 +288,11 @@ class EsriRestDownloadTask(DownloadTask):
             yield data
 
     def bbox_query(self, query_url, query_fields, bounds):
-        geometry = json.dumps({"rings": [[bounds[0], bounds[1]],
-                                         [bounds[0], bounds[3]],
-                                         [bounds[2], bounds[3]],
-                                         [bounds[2], bounds[1]],
-                                         [bounds[0], bounds[1]]]})
-
-        print(geometry)
-
-        geometry = json.dumps({
-            "rings": [
-                [
-                    [bounds[0], bounds[1]],
-                    [bounds[0], bounds[3]],
-                    [bounds[2], bounds[3]],
-                    [bounds[2], bounds[1]],
-                    [bounds[0], bounds[1]]
-                ]
-            ]
-        })
+        geometry = json.dumps({"rings": [[[bounds[0], bounds[1]],
+                                          [bounds[0], bounds[3]],
+                                          [bounds[2], bounds[3]],
+                                          [bounds[2], bounds[1]],
+                                          [bounds[0], bounds[1]]]]})
 
         query_args = dict(**self.query_params)
         query_args.update({
@@ -316,7 +302,6 @@ class EsriRestDownloadTask(DownloadTask):
             'geometryPrecision': 7,
             'returnGeometry': 'true',
             'returnIdsOnly': 'false',
-            'outSR': 4326,
             'outFields': ','.join(query_fields or ['*']),
             'f': 'json',
         })
@@ -346,8 +331,6 @@ class EsriRestDownloadTask(DownloadTask):
             try:
                 (oid_min, oid_max) = self.get_layer_min_max(query_url,
                                                             oid_field_name)
-                print(oid_min, oid_max)
-                print(query_url)
                 return 'where'
             except DownloadError:
                 pass
@@ -364,7 +347,19 @@ class EsriRestDownloadTask(DownloadTask):
         return 'subdivision'
         
 
-    def download(self, source_url, output_path, conform=None):
+    def download(self, source_url, output_path, keep_sr, conform=None):
+        _, file_extension = os.path.splitext(output_path)
+        if file_extension == '.csv':
+            Writer = CSVWriter
+        elif file_extension == '.geojson':
+            Writer = GeoJSONWriter
+        else:
+            raise ValueError('output_path must have csv or geojson extension')
+
+        if not keep_sr:
+            self.query_params['outSR'] = 4326
+            print('LATLONG')
+            
         query_fields = self.field_names_to_request(conform)
         metadata = self.get_layer_metadata(source_url)
 
@@ -399,11 +394,13 @@ class EsriRestDownloadTask(DownloadTask):
             pages = self.subdivide(query_url, query_fields, metadata, page_size)
             _L.info("Using subdivision method")
 
+        if query_fields is None:
+            field_names = [f['name'] for f in metadata['fields']]
+        else:
+            field_names = query_fields[:]
 
-        with open_file(output_path, 'w') as f:
-            f.write("""{
-            "type": "FeatureCollection",
-            "features": [\n""")
+        with open(output_path, 'w') as f:
+            writer = Writer(f, field_names)
 
             start = True
             n_features = 0
@@ -413,44 +410,18 @@ class EsriRestDownloadTask(DownloadTask):
                 if error:
                     raise DownloadError("Problem querying ESRI dataset with args {}. Server said: {}".format(query_args, error['message']))
 
-                geometry_type = data.get('geometryType')
+                writer.geometry_type = data.get('geometryType')
                 features = data.get('features')
 
                 for feature in features:
-                    if start:
-                        start = False
-                    else:
-                        f.write(',\n')
-
-                    attrs = feature['attributes']
-
-                    oid = attrs.get(oid_field_name)
-
-                    geom = feature['geometry']
-
-                    f.write(json.dumps({
-                        "type": "Feature",
-                        "properties": attrs,
-                        "geometry": esrijson2geojson(geometry_type, geom)
-                    }))
+                    writer.writefeature(feature)
                     n_features += 1
                     print(n_features)
-
-            f.write("]\n}\n")
+                    
+            writer.close()
 
                         
 
-@contextmanager
-def open_file(path, mode):
-    the_file = open(path, mode)
-    try:
-        yield the_file
-    except:
-        the_file.truncate()
-        raise
-    finally:
-        the_file.close()
-    
 def esrijson2geojson(geom_type, esrijson):
     geojson = {}
     if geom_type == 'esriGeometryPolygon':
@@ -497,3 +468,57 @@ def bboxes(bbox, cells_per_side):
         for y in frange(ymin, ymax, y_step):
             bbox = (x, y, x + x_step, y + y_step)
             yield bbox
+
+class GeoJSONWriter(object):
+    def __init__(self, outfile, field_names, geometry_type=None):
+        self.outfile = outfile
+        self.field_names = field_names
+        self.geometry_type = geometry_type
+        
+        self.start = True
+        self.outfile.write("""{
+            "type": "FeatureCollection",
+            "features": [\n""")
+        
+    def writefeature(self, feature):
+        if self.start:
+            self.start = False
+        else:
+            self.outfile.write(',\n')
+
+        attrs = feature['attributes']
+        geom = feature['geometry']
+
+        self.outfile.write(json.dumps({
+            "type": "Feature",
+            "properties": attrs,
+            "geometry": esrijson2geojson(self.geometry_type, geom)
+        }))
+
+            
+    def close(self):
+        self.outfile.write("]\n}\n")
+
+class CSVWriter(object):
+    def __init__(self, outfile, field_names, geometry_type=None):
+        self.outfile = outfile
+        self.geometry_type = geometry_type
+        field_names += ['geometry']
+
+        self._writer = csv.DictWriter(outfile, field_names,
+                                      extrasaction='ignore')
+        self._writer.writeheader()
+
+    def writefeature(self, feature):
+        attrs = feature['attributes']
+        geom = wkt.dumps(esrijson2geojson(self.geometry_type,
+                                          feature['geometry']))
+
+        attrs['geometry'] = geom
+
+        self._writer.writerow(attrs)
+
+    def close(self):
+        pass
+
+        

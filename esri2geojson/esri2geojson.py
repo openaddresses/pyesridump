@@ -25,18 +25,19 @@ def _collect_params(strings):
     
     return params
 
-def esri2geojson(esri_url, output_path, headers={}, params={}):
+def esri2geojson(esri_url, output_path, keep_sr, headers={}, params={}):
     ''' Convert single ESRI feature service URL to GeoJSON file.
     '''
     task = EsriRestDownloadTask('esri', params=params, headers=headers)
-    task.download(esri_url, output_path)
+    task.download(esri_url, output_path, keep_sr)
     
-parser = ArgumentParser(description='Convert single ESRI feature service URL to GeoJSON file.')
+parser = ArgumentParser(description='Convert single ESRI feature service URL to GeoJSON or CSV file.')
 
 parser.add_argument('esri_url', help='Required ESRI source URL.')
-parser.add_argument('geojson_path', help='Required output GeoJSON filename.')
+parser.add_argument('output_path', help='Required output filename.')
 
-parser.add_argument('-l', '--logfile', help='Optional log file name.')
+parser.add_argument('--keep_sr', help="Keep original projection",
+                    action='store_true')
 
 parser.add_argument('-v', '--verbose', help='Turn on verbose logging',
                     action='store_const', dest='loglevel',
@@ -57,7 +58,8 @@ def main():
     
     headers, params = _collect_headers(args.header), _collect_params(args.param)
 
-    return esri2geojson(args.esri_url, args.geojson_path, headers, params)
+    return esri2geojson(args.esri_url, args.output_path,
+                        args.keep_sr, headers, params)
 
 if __name__ == '__main__':
     exit(main())
