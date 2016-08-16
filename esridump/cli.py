@@ -12,18 +12,21 @@ def main():
 
     dumper = EsriDumper(args.url)
 
-    if not args.jsonlines:
+    if args.jsonlines:
+        for feature in dumper.iter():
+            args.outfile.write(json.dumps(feature))
+            args.outfile.write('\n')
+    else:
         args.outfile.write('{"type":"FeatureCollection","features":[\n')
-
-    for feature in dumper.iter():
-        args.outfile.write(json.dumps(feature))
-
-        if not args.jsonlines:
-            args.outfile.write(',')
-        args.outfile.write('\n')
-
-    if not args.jsonlines:
-        # args.outfile.seek(-2)
+        feature_iter = dumper.iter()
+        try:
+            feature = feature_iter.next()
+            while True:
+                args.outfile.write(json.dumps(feature))
+                feature = feature_iter.next()
+                args.outfile.write(',\n')
+        except StopIteration:
+            args.outfile.write('\n')
         args.outfile.write(']}')
 
 if __name__ == '__main__':
