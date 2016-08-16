@@ -10,7 +10,7 @@ with open('LICENSE') as f:
     license = f.read()
 
 setup(
-    name='esri-dump',
+    name='esridump',
     version='0.1.0',
     description='Dump geodata from ESRI endpoints to GeoJSON',
     long_description=readme,
@@ -19,6 +19,10 @@ setup(
     url='https://github.com/openaddresses/pyesridump',
     license=license,
     packages=find_packages(exclude=('tests', 'docs')),
+    install_requires=[
+        'requests',
+        'simplejson',
+    ],
     entry_points={
         'console_scripts': ['esri2geojson=esridump.cli:main'],
     }
