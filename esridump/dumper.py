@@ -8,7 +8,8 @@ from esridump.errors import EsriDownloadError
 class EsriDumper(object):
     def __init__(self, url, parent_logger=None, extra_query_args=None, extra_headers=None, timeout=None):
         self._layer_url = url
-        self._query_params = extra_query_args or {}
+        self._query_params = extra_query_args or {'outSR': 4326,
+                                                  'f': 'json'}
         self._headers = extra_headers or {}
         self._http_timeout = timeout or 30
 
@@ -74,7 +75,6 @@ class EsriDumper(object):
             'where': '1=1',
             'returnGeometry': 'false',
             'outFields': ','.join(query_fields),
-            'f': 'json',
         })
         headers = self._build_headers()
         query_url = self._build_url('/query')
@@ -93,7 +93,7 @@ class EsriDumper(object):
 
     def get_metadata(self):
         query_args = self._build_query_args({
-            'f': 'json',
+
         })
         headers = self._build_headers()
         url = self._build_url()
@@ -105,7 +105,6 @@ class EsriDumper(object):
         query_args = self._build_query_args({
             'where': '1=1',
             'returnCountOnly': 'true',
-            'f': 'json',
         })
         headers = self._build_headers()
         url = self._build_url('/query')
@@ -129,7 +128,6 @@ class EsriDumper(object):
     def _get_layer_min_max(self, oid_field_name):
         """ Find the min and max values for the OID field. """
         query_args = self._build_query_args({
-            'f': 'json',
             'outFields': '',
             'outStatistics': json.dumps([
                 dict(statisticType='min', onStatisticField=oid_field_name, outStatisticFieldName='THE_MIN'),
@@ -151,7 +149,6 @@ class EsriDumper(object):
         query_args = self._build_query_args({
             'where': '1=1',  # So we get everything
             'returnIdsOnly': 'true',
-            'f': 'json',
         })
         url = self._build_url('/query')
         headers = self._build_headers()
@@ -222,9 +219,7 @@ class EsriDumper(object):
             'returnCountOnly': 'false',
             'returnIdsOnly': 'false',
             'returnGeometry': 'true',
-            'outSR': 4326,
             'outFields': '*',
-            'f': 'json'
         })
         headers = self._build_headers()
         url = self._build_url('/query')
@@ -329,9 +324,7 @@ class EsriDumper(object):
                     'where': '1=1',
                     'geometryPrecision': 7,
                     'returnGeometry': 'true',
-                    'outSR': 4326,
                     'outFields': ','.join(query_fields or ['*']),
-                    'f': 'json',
                 })
                 page_args.append(query_args)
             self._logger.info("Built %s requests using resultOffset method", len(page_args))
@@ -362,9 +355,7 @@ class EsriDumper(object):
                             ),
                             'geometryPrecision': 7,
                             'returnGeometry': 'true',
-                            'outSR': 4326,
                             'outFields': ','.join(query_fields or ['*']),
-                            'f': 'json',
                         })
                         page_args.append(query_args)
                     self._logger.info("Built {} requests using OID where clause method".format(len(page_args)))
@@ -388,9 +379,7 @@ class EsriDumper(object):
                         'objectIds': ','.join(map(str, oid_chunk)),
                         'geometryPrecision': 7,
                         'returnGeometry': 'true',
-                        'outSR': 4326,
                         'outFields': ','.join(query_fields or ['*']),
-                        'f': 'json',
                     })
                     page_args.append(query_args)
                 self._logger.info("Built %s requests using OID enumeration method", len(page_args))
