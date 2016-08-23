@@ -214,7 +214,7 @@ class EsriDumper(object):
 
         return geom
 
-    def _fetch_bounded_features(self, envelope):
+    def _fetch_bounded_features(self, envelope, outSR):
         query_args = self._build_query_args({
             'geometry': json.dumps(envelope),
             'geometryType': 'esriGeometryEnvelope',
@@ -222,7 +222,7 @@ class EsriDumper(object):
             'returnCountOnly': 'false',
             'returnIdsOnly': 'false',
             'returnGeometry': 'true',
-            'outSR': 4326,
+            'outSR': outSR,
             'outFields': '*',
             'f': 'json'
         })
@@ -262,8 +262,8 @@ class EsriDumper(object):
             ),
         ]
 
-    def _scrape_an_envelope(self, envelope, max_records):
-        features = self._fetch_bounded_features(envelope)
+    def _scrape_an_envelope(self, envelope, outSR, max_records):
+        features = self._fetch_bounded_features(envelope, outSR)
 
         if len(features) == max_records:
             self._logger.info("Retrieved exactly the maximum record count. Splitting this box and retrieving the children.")
@@ -271,13 +271,14 @@ class EsriDumper(object):
             envelopes = self._split_envelope(envelope)
 
             for child_envelope in envelopes:
-                for feature in self._scrape_an_envelope(child_envelope, max_records):
+                for feature in self._scrape_an_envelope(child_envelope, outSR, max_records):
                     yield feature
         else:
             for feature in features:
                 yield feature
 
-    def iter(self, fields=None):
+    def iter(self, fields=None, outSR=None):
+        outSR = outSR or '4326'
         query_fields = fields
         metadata = self.get_metadata()
         page_size = min(1000, metadata.get('maxRecordCount', 500))
@@ -297,7 +298,7 @@ class EsriDumper(object):
             bounds = metadata['extent']
             saved = set()
 
-            for feature in self._scrape_an_envelope(bounds, page_size):
+            for feature in self._scrape_an_envelope(bounds, outSR, page_size):
                 attrs = feature['attributes']
                 oid = attrs.get(oid_field_name)
                 if oid in saved:
@@ -329,7 +330,7 @@ class EsriDumper(object):
                     'where': '1=1',
                     'geometryPrecision': 7,
                     'returnGeometry': 'true',
-                    'outSR': 4326,
+                    'outSR': outSR,
                     'outFields': ','.join(query_fields or ['*']),
                     'f': 'json',
                 })
@@ -362,7 +363,7 @@ class EsriDumper(object):
                             ),
                             'geometryPrecision': 7,
                             'returnGeometry': 'true',
-                            'outSR': 4326,
+                            'outSR': outSR,
                             'outFields': ','.join(query_fields or ['*']),
                             'f': 'json',
                         })
@@ -388,7 +389,7 @@ class EsriDumper(object):
                         'objectIds': ','.join(map(str, oid_chunk)),
                         'geometryPrecision': 7,
                         'returnGeometry': 'true',
-                        'outSR': 4326,
+                        'outSR': outSR,
                         'outFields': ','.join(query_fields or ['*']),
                         'f': 'json',
                     })
