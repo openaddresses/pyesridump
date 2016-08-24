@@ -6,11 +6,15 @@ import socket
 from esridump.errors import EsriDownloadError
 
 class EsriDumper(object):
-    def __init__(self, url, parent_logger=None, extra_query_args=None, extra_headers=None, timeout=None):
+    def __init__(self, url, parent_logger=None,
+        extra_query_args=None, extra_headers=None,
+        timeout=None, fields=None, outSR=None):
         self._layer_url = url
         self._query_params = extra_query_args or {}
         self._headers = extra_headers or {}
         self._http_timeout = timeout or 30
+        self._fields = fields or None
+        self._outSR = outSR or '4326'
 
         if parent_logger:
             self._logger = parent_logger.getChild('esridump')
@@ -277,9 +281,8 @@ class EsriDumper(object):
             for feature in features:
                 yield feature
 
-    def iter(self, fields=None, outSR=None):
-        outSR = outSR or '4326'
-        query_fields = fields
+    def __iter__(self):
+        query_fields = self._fields
         metadata = self.get_metadata()
         page_size = min(1000, metadata.get('maxRecordCount', 500))
         geometry_type = metadata.get('geometryType')
@@ -298,7 +301,7 @@ class EsriDumper(object):
             bounds = metadata['extent']
             saved = set()
 
-            for feature in self._scrape_an_envelope(bounds, outSR, page_size):
+            for feature in self._scrape_an_envelope(bounds, self._outSR, page_size):
                 attrs = feature['attributes']
                 oid = attrs.get(oid_field_name)
                 if oid in saved:
@@ -330,7 +333,7 @@ class EsriDumper(object):
                     'where': '1=1',
                     'geometryPrecision': 7,
                     'returnGeometry': 'true',
-                    'outSR': outSR,
+                    'outSR': self._outSR,
                     'outFields': ','.join(query_fields or ['*']),
                     'f': 'json',
                 })
@@ -363,7 +366,7 @@ class EsriDumper(object):
                             ),
                             'geometryPrecision': 7,
                             'returnGeometry': 'true',
-                            'outSR': outSR,
+                            'outSR': self._outSR,
                             'outFields': ','.join(query_fields or ['*']),
                             'f': 'json',
                         })
@@ -389,7 +392,7 @@ class EsriDumper(object):
                         'objectIds': ','.join(map(str, oid_chunk)),
                         'geometryPrecision': 7,
                         'returnGeometry': 'true',
-                        'outSR': outSR,
+                        'outSR': self._outSR,
                         'outFields': ','.join(query_fields or ['*']),
                         'f': 'json',
                     })
@@ -421,6 +424,3 @@ class EsriDumper(object):
                     yield self._build_geojson(geometry_type, feature)
                 except TypeError:
                     self._logger.warning("Skipping feature without geometry")
-
-    def get_all(self, fields=None):
-        return [r for r in self.iter(fields)]
