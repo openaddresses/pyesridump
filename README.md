@@ -28,13 +28,13 @@ from esridump.dumper import EsriDumper
 d = EsriDumper('http://example.com/arcgis/rest/services/Layer/MapServer/1')
 
 # Iterate over each feature
-for feature in d.iter():
+for feature in d:
     print(json.dumps(feature))
 
 d = EsriDumper('http://example.com/arcgis/rest/services/Layer/MapServer/2')
 
 # Or get all features in one list
-all_features = d.get_all()
+all_features = list(d)
 ```
 
 ## Methodology
