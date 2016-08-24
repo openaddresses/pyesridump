@@ -50,7 +50,7 @@ class TestEsriDownload(unittest.TestCase):
         )
 
         dump = EsriDumper(self.fake_url)
-        data = dump.get_all()
+        data = list(dump)
 
         self.assertEqual(5, len(data))
 
@@ -77,7 +77,7 @@ class TestEsriDownload(unittest.TestCase):
         )
 
         dump = EsriDumper(self.fake_url)
-        data = dump.get_all()
+        data = list(dump)
 
         self.assertEqual(1, len(data))
 
@@ -99,7 +99,7 @@ class TestEsriDownload(unittest.TestCase):
         )
 
         dump = EsriDumper(self.fake_url)
-        data = dump.get_all()
+        data = list(dump)
 
         self.assertEqual(838, len(data))
 
@@ -126,7 +126,7 @@ class TestEsriDownload(unittest.TestCase):
         )
 
         dump = EsriDumper(self.fake_url)
-        data = dump.get_all()
+        data = list(dump)
 
         self.assertEqual(15, len(data))
 
@@ -158,7 +158,7 @@ class TestEsriDownload(unittest.TestCase):
         )
 
         dump = EsriDumper(self.fake_url)
-        data = dump.get_all()
+        data = list(dump)
 
         self.assertEqual(15, len(data))
 
@@ -185,7 +185,7 @@ class TestEsriDownload(unittest.TestCase):
         )
 
         dump = EsriDumper(self.fake_url)
-        data = dump.get_all()
+        data = list(dump)
 
         self.assertEqual(43, len(data))
 
@@ -214,7 +214,7 @@ class TestEsriDownload(unittest.TestCase):
 
         dump = EsriDumper(self.fake_url)
         with self.assertRaisesRegexp(EsriDownloadError, "Timeout when connecting to URL"):
-            dump.get_all()
+            list(dump)
 
     def test_handles_value_error(self):
         self.add_fixture_response(
@@ -240,7 +240,7 @@ class TestEsriDownload(unittest.TestCase):
 
         dump = EsriDumper(self.fake_url)
         with self.assertRaisesRegexp(EsriDownloadError, "Could not parse JSON"):
-            dump.get_all()
+            list(dump)
 
     def test_handles_exception(self):
         self.add_fixture_response(
@@ -266,7 +266,7 @@ class TestEsriDownload(unittest.TestCase):
 
         dump = EsriDumper(self.fake_url)
         with self.assertRaisesRegexp(EsriDownloadError, "Could not connect to URL"):
-            dump.get_all()
+            list(dump)
 
     def test_geo_queries_when_count_doesnt_work(self):
         self.add_fixture_response(
@@ -306,7 +306,7 @@ class TestEsriDownload(unittest.TestCase):
         )
 
         dump = EsriDumper(self.fake_url)
-        data = dump.get_all()
+        data = list(dump)
 
         # Note that this count is entirely fake because of the deduping happening
         # This test is only designed to make sure we're splitting into smaller

@@ -75,12 +75,12 @@ def main():
         parent_logger=logger)
 
     if args.jsonlines:
-        for feature in dumper.iter():
+        for feature in dumper:
             args.outfile.write(json.dumps(feature))
             args.outfile.write('\n')
     else:
         args.outfile.write('{"type":"FeatureCollection","features":[\n')
-        feature_iter = dumper.iter()
+        feature_iter = iter(dumper)
         try:
             feature = feature_iter.next()
             while True:
