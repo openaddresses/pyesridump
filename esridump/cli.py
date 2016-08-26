@@ -4,7 +4,7 @@ import urllib
 import logging
 import simplejson as json
 
-from esridump.dumper import EsriDumper
+from esridump import EsriDumper
 
 def _collect_headers(strings):
     headers = {}
