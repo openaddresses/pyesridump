@@ -3,6 +3,7 @@ import requests
 import simplejson as json
 import socket
 
+from esridump import esri2geojson
 from esridump.errors import EsriDownloadError
 
 class EsriDumper(object):
@@ -163,61 +164,6 @@ class EsriDumper(object):
         oid_data = self._handle_esri_errors(response, "Could not retrieve object IDs")
         return oid_data['objectIds']
 
-    GEOM_TYPE_MAPPING = {
-        'esriGeometryPoint': 'Point',
-        'esriGeometryMultipoint': 'MultiPoint',
-        'esriGeometryPolygon': 'Polygon',
-        'esriGeometryPolyline': 'LineString',
-    }
-
-    def _build_geojson(self, geom_type, esri_feature):
-        if 'geometry' not in esri_feature:
-            raise TypeError("No geometry for feature")
-
-        geom = {
-            "type": "Feature",
-            "geometry": {
-                "type": self.GEOM_TYPE_MAPPING[geom_type],
-                "coordinates": []
-            }
-        }
-
-        attributes = esri_feature.get('attributes')
-        if attributes:
-            geom['properties'] = attributes
-
-        if geom_type == 'esriGeometryPoint':
-            if esri_feature['geometry'] and esri_feature['geometry']['x']:
-                geom['geometry']['coordinates'] = [
-                    esri_feature['geometry']['x'],
-                    esri_feature['geometry']['y']
-                ]
-        elif geom_type == 'esriGeometryMultipoint':
-            geom['geometry']['coordinates'] = [
-                [pt[0], pt[1]]
-                for pt in esri_feature['geometry']['points']
-            ]
-        elif geom_type == 'esriGeometryPolygon':
-            geom['geometry']['coordinates'] = [
-                [
-                    [pt[0], pt[1]]
-                    for pt in ring
-                ]
-                for ring in esri_feature['geometry']['rings']
-            ]
-        elif geom_type == 'esriGeometryPolyline':
-            geom['geometry']['coordinates'] = [
-                [
-                    [pt[0], pt[1]]
-                    for pt in path
-                ]
-                for path in esri_feature['geometry']['paths']
-            ]
-        else:
-            raise KeyError("Don't know how to convert ESRI geometry type {}".format(geom_type))
-
-        return geom
-
     def _fetch_bounded_features(self, envelope, outSR):
         query_args = self._build_query_args({
             'geometry': json.dumps(envelope),
@@ -307,7 +253,7 @@ class EsriDumper(object):
                 if oid in saved:
                     continue
 
-                yield self._build_geojson(geometry_type, feature)
+                yield esri2geojson(feature)
 
                 saved.add(oid)
 
@@ -421,6 +367,6 @@ class EsriDumper(object):
 
             for feature in features:
                 try:
-                    yield self._build_geojson(geometry_type, feature)
+                    yield esri2geojson(feature)
                 except TypeError:
                     self._logger.warning("Skipping feature without geometry")

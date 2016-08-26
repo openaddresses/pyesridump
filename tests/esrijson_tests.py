@@ -1,14 +1,13 @@
 import unittest
 
-from esridump.dumper import EsriDumper
+from esridump import esri2geojson
 
 class TestEsriJsonToGeoJson(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
 
     def assertEsriJsonBecomesGeoJson(self, geom_type, esrijson, geojson):
-        d = EsriDumper('http://example.com')
-        out_json = d._build_geojson(geom_type, esrijson)
+        out_json = esri2geojson(esrijson)
         self.assertDictEqual(out_json, geojson)
 
 
@@ -74,18 +73,15 @@ class TestGeoJsonPointConversion(TestEsriJsonToGeoJson):
                 "geometry": {
                     "type": "MultiPoint",
                     "coordinates": [
-                        [
-                            [41.83, 71.01],
-                            [56.95, 33.75],
-                            [21.79, 36.56]
-                        ]
+                        [41.83, 71.01],
+                        [56.95, 33.75],
+                        [21.79, 36.56]
                     ]
                 }
             }
         )
 
     def test_empty_point(self):
-
         self.assertEsriJsonBecomesGeoJson(
             'esriGeometryPoint',
             {
@@ -96,10 +92,8 @@ class TestGeoJsonPointConversion(TestEsriJsonToGeoJson):
 
             {
                 "type": "Feature",
-                "geometry": {
-                    "type": "Point",
-                    "coordinates": [],
-                }
+                "properties": None,
+                "geometry": None
             }
         )
 
@@ -118,6 +112,7 @@ class TestGeoJsonLinestringConversion(TestEsriJsonToGeoJson):
 
             {
                 "type": "Feature",
+                "properties": None,
                 "geometry": {
                     "type": "LineString",
                     "coordinates": [
@@ -141,6 +136,7 @@ class TestGeoJsonLinestringConversion(TestEsriJsonToGeoJson):
 
             {
                 "type": "Feature",
+                "properties": None,
                 "geometry": {
                     "type": "MultiLineString",
                     "coordinates": [
@@ -166,6 +162,7 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
 
             {
                 "type": "Feature",
+                "properties": None,
                 "geometry": {
                     "type": "Polygon",
                     "coordinates": [
@@ -189,6 +186,7 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
 
             {
                 "type": "Feature",
+                "properties": None,
                 "geometry": {
                     "type": "Polygon",
                     "coordinates": [
@@ -213,10 +211,11 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
 
             {
                 "type": "Feature",
+                "properties": None,
                 "geometry": {
                     "type": "Polygon",
                     "coordinates": [
-                        [-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832], [-97.06138,32.837]
+                        [[-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832], [-97.06138,32.837]]
                     ],
                 }
             }
@@ -236,6 +235,7 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
 
             {
                 "type": "Feature",
+                "properties": None,
                 "geometry": {
                     "type": "MultiPolygon",
                     "coordinates": [
@@ -261,6 +261,7 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
 
             {
                 "type": "Feature",
+                "properties": None,
                 "geometry": {
                     "type": "MultiPolygon",
                     "coordinates": [
@@ -282,9 +283,7 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
 
             {
                 "type": "Feature",
-                "geometry": {
-                    "type": "Polygon",
-                    "coordinates": [],
-                }
+                "properties": None,
+                "geometry": None
             }
         )
