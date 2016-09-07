@@ -6,7 +6,7 @@ class TestEsriJsonToGeoJson(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
 
-    def assertEsriJsonBecomesGeoJson(self, geom_type, esrijson, geojson):
+    def assertEsriJsonBecomesGeoJson(self, esrijson, geojson):
         out_json = esri2geojson(esrijson)
         self.assertDictEqual(out_json, geojson)
 
@@ -14,7 +14,6 @@ class TestEsriJsonToGeoJson(unittest.TestCase):
 class TestGeoJsonPointConversion(TestEsriJsonToGeoJson):
     def test_point(self):
         self.assertEsriJsonBecomesGeoJson(
-            'esriGeometryPoint',
             {
                 "geometry": {
                     "x": 496814.6,
@@ -45,7 +44,6 @@ class TestGeoJsonPointConversion(TestEsriJsonToGeoJson):
 
     def test_multi_point(self):
         self.assertEsriJsonBecomesGeoJson(
-            'esriGeometryPoint',
             {
                 "geometry": {
                     "points": [
@@ -83,7 +81,6 @@ class TestGeoJsonPointConversion(TestEsriJsonToGeoJson):
 
     def test_empty_point(self):
         self.assertEsriJsonBecomesGeoJson(
-            'esriGeometryPoint',
             {
                 "geometry": {
                     "x": None,
@@ -101,7 +98,6 @@ class TestGeoJsonPointConversion(TestEsriJsonToGeoJson):
 class TestGeoJsonLinestringConversion(TestEsriJsonToGeoJson):
     def test_linestring(self):
         self.assertEsriJsonBecomesGeoJson(
-            'esriGeometryPolyline',
             {
                 "geometry": {
                     "paths" : [
@@ -124,7 +120,6 @@ class TestGeoJsonLinestringConversion(TestEsriJsonToGeoJson):
 
     def test_multi_linestring(self):
         self.assertEsriJsonBecomesGeoJson(
-            'esriGeometryPolyline',
             {
                 "geometry": {
                     "paths" : [
@@ -147,11 +142,39 @@ class TestGeoJsonLinestringConversion(TestEsriJsonToGeoJson):
             }
         )
 
+    def test_real_linstring(self):
+        self.assertEsriJsonBecomesGeoJson(
+            {
+                "attributes": {
+                    "objectid":187,
+                    "st_length(shape)":1322.4896687156252
+                },
+                "geometry":{
+                    "paths":[
+                        [[-95.42428663740543,39.743798710848658],[-95.424285648691338,39.744302699946864],[-95.424279518608387,39.747429247542691]]
+                    ]
+                }
+            },
+
+            {
+                "type": "Feature",
+                "properties": {
+                    "objectid": 187,
+                    "st_length(shape)": 1322.4896687156252
+                },
+                "geometry": {
+                    "type": "LineString",
+                    "coordinates": [
+                        [-95.42428663740543, 39.74379871084866], [-95.42428564869134, 39.744302699946864], [-95.42427951860839, 39.74742924754269]
+                    ]
+                }
+            }
+        )
+
 
 class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
     def test_polygon(self):
         self.assertEsriJsonBecomesGeoJson(
-            'esriGeometryPolygon',
             {
                 "geometry": {
                     "rings" : [
@@ -175,7 +198,6 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
     def test_polygon_close(self):
         # Esri-JSON allows polygons that aren't closed. GeoJSON requires them to be closed.
         self.assertEsriJsonBecomesGeoJson(
-            'esriGeometryPolygon',
             {
                 "geometry": {
                     "rings" : [
@@ -199,7 +221,6 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
     def test_polygon_strip_invalid_rings(self):
         # Esri JSON allows rings with three points (A-B-A) that are essentially lines. GeoJSON doesn't.
         self.assertEsriJsonBecomesGeoJson(
-            'esriGeometryPolygon',
             {
                 "geometry": {
                     "rings" : [
@@ -223,7 +244,6 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
 
     def test_multi_polygon(self):
         self.assertEsriJsonBecomesGeoJson(
-            'esriGeometryPolygon',
             {
                 "geometry": {
                     "rings" : [
@@ -249,7 +269,6 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
     def test_multi_polygon_close(self):
         # We should close the rings of a multipolygon if they aren't closed already
         self.assertEsriJsonBecomesGeoJson(
-            'esriGeometryPolygon',
             {
                 "geometry": {
                     "rings" : [
@@ -274,7 +293,6 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
 
     def test_empty_polygon(self):
         self.assertEsriJsonBecomesGeoJson(
-            'esriGeometryPolygon',
             {
                 "geometry": {
                     "rings" : [ ]

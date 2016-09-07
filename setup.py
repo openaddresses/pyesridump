@@ -22,6 +22,7 @@ setup(
     install_requires=[
         'requests',
         'simplejson',
+        'six',
     ],
     entry_points={
         'console_scripts': ['esri2geojson=esridump.cli:main'],

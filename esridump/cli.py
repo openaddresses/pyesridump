@@ -1,6 +1,6 @@
 import argparse
 import email.parser
-import urllib
+from six.moves import urllib
 import logging
 import simplejson as json
 
