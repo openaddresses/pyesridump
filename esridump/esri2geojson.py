@@ -12,7 +12,9 @@ def esri2geojson(esrijson_feature):
     return response
 
 def convert_esri_geometry(esri_geometry):
-    if 'x' in esri_geometry or 'y' in esri_geometry:
+    if esri_geometry is None:
+        return esri_geometry
+    elif 'x' in esri_geometry or 'y' in esri_geometry:
         return convert_esri_point(esri_geometry)
     elif 'points' in esri_geometry:
         return convert_esri_multipoint(esri_geometry)
@@ -20,8 +22,6 @@ def convert_esri_geometry(esri_geometry):
         return convert_esri_polyline(esri_geometry)
     elif 'rings' in esri_geometry:
         return convert_esri_polygon(esri_geometry)
-    elif esri_geometry is None:
-        return esri_geometry
 
 def convert_esri_point(esri_geometry):
     x_coord = esri_geometry.get('x')

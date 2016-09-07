@@ -9,13 +9,15 @@ from esridump.errors import EsriDownloadError
 class EsriDumper(object):
     def __init__(self, url, parent_logger=None,
         extra_query_args=None, extra_headers=None,
-        timeout=None, fields=None, outSR=None):
+        timeout=None, fields=None, request_geometry=True,
+        outSR=None):
         self._layer_url = url
         self._query_params = extra_query_args or {}
         self._headers = extra_headers or {}
         self._http_timeout = timeout or 30
         self._fields = fields or None
         self._outSR = outSR or '4326'
+        self._request_geometry = request_geometry
 
         if parent_logger:
             self._logger = parent_logger.getChild('esridump')
@@ -171,7 +173,7 @@ class EsriDumper(object):
             'spatialRel': 'esriSpatialRelIntersects',
             'returnCountOnly': 'false',
             'returnIdsOnly': 'false',
-            'returnGeometry': 'true',
+            'returnGeometry': self._request_geometry,
             'outSR': outSR,
             'outFields': '*',
             'f': 'json'
@@ -278,7 +280,7 @@ class EsriDumper(object):
                     'resultRecordCount': page_size,
                     'where': '1=1',
                     'geometryPrecision': 7,
-                    'returnGeometry': 'true',
+                    'returnGeometry': self._request_geometry,
                     'outSR': self._outSR,
                     'outFields': ','.join(query_fields or ['*']),
                     'f': 'json',
@@ -311,7 +313,7 @@ class EsriDumper(object):
                                 page_max,
                             ),
                             'geometryPrecision': 7,
-                            'returnGeometry': 'true',
+                            'returnGeometry': self._request_geometry,
                             'outSR': self._outSR,
                             'outFields': ','.join(query_fields or ['*']),
                             'f': 'json',
@@ -337,7 +339,7 @@ class EsriDumper(object):
                     query_args = self._build_query_args({
                         'objectIds': ','.join(map(str, oid_chunk)),
                         'geometryPrecision': 7,
-                        'returnGeometry': 'true',
+                        'returnGeometry': self._request_geometry,
                         'outSR': self._outSR,
                         'outFields': ','.join(query_fields or ['*']),
                         'f': 'json',
@@ -366,7 +368,4 @@ class EsriDumper(object):
             features = data.get('features')
 
             for feature in features:
-                try:
-                    yield esri2geojson(feature)
-                except TypeError:
-                    self._logger.warning("Skipping feature without geometry")
+                yield esri2geojson(feature)
