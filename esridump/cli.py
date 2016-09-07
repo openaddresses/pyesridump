@@ -47,6 +47,13 @@ def main():
         const=logging.WARNING,
         default=logging.INFO,
         help="Turn off most logging")
+    parser.add_argument("-f", "--fields",
+        help="Specify a comma-separated list of fields to request from the server")
+    parser.add_argument("--no-geometry",
+        dest='request_geometry',
+        action='store_false',
+        default=True,
+        help="Don't request geometry for the feature so the server returns attributes only")
     parser.add_argument("-H", "--header",
         action='append',
         dest='headers',
@@ -72,6 +79,8 @@ def main():
     dumper = EsriDumper(args.url,
         extra_query_args=params,
         extra_headers=headers,
+        fields=args.fields.split(','),
+        request_geometry=args.request_geometry,
         parent_logger=logger)
 
     if args.jsonlines:
