@@ -52,7 +52,7 @@ class TestEsriDownload(unittest.TestCase):
         dump = EsriDumper(self.fake_url)
         data = list(dump)
 
-        self.assertEqual(5, len(data))
+        self.assertEqual(6, len(data))
 
     def test_statistics_pagination(self):
         self.add_fixture_response(
@@ -101,7 +101,7 @@ class TestEsriDownload(unittest.TestCase):
         dump = EsriDumper(self.fake_url)
         data = list(dump)
 
-        self.assertEqual(838, len(data))
+        self.assertEqual(1000, len(data))
 
     def test_advanced_query_pagination_incorrect_outfield_name(self):
         self.add_fixture_response(
