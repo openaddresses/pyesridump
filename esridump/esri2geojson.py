@@ -1,4 +1,4 @@
-from itertools import tee, izip
+from itertools import tee
 
 def esri2geojson(esrijson_feature):
     response = dict(type="Feature", geometry=None, properties=None)
@@ -135,4 +135,4 @@ def pairwise(iterable):
     "s -> (s0,s1), (s1,s2), (s2, s3), ..."
     a, b = tee(iterable)
     next(b, None)
-    return izip(a, b)
+    return zip(a, b)
