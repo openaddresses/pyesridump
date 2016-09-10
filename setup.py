@@ -11,7 +11,7 @@ with open('LICENSE') as f:
 
 setup(
     name='esridump',
-    version='1.3.0',
+    version='1.4.0',
     description='Dump geodata from ESRI endpoints to GeoJSON',
     long_description=readme,
     author='Ian Dees',
