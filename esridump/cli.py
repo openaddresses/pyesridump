@@ -3,6 +3,7 @@ import email.parser
 from six.moves import urllib
 import logging
 import simplejson as json
+import sys
 
 from esridump import EsriDumper
 
@@ -23,7 +24,7 @@ def _collect_params(strings):
 
     return params
 
-def main():
+def _parse_args(args):
     parser = argparse.ArgumentParser(
         description="Convert a single Esri feature service URL to GeoJSON")
     parser.add_argument("url",
@@ -65,7 +66,10 @@ def main():
         default=[],
         help="Add a URL parameter to send when requesting from Esri server")
 
-    args = parser.parse_args()
+    return parser.parse_args(args)
+
+def main():
+    args = _parse_args(sys.argv[1:])
     headers = _collect_headers(args.headers)
     params = _collect_params(args.params)
 
@@ -93,10 +97,10 @@ def main():
         args.outfile.write('{"type":"FeatureCollection","features":[\n')
         feature_iter = iter(dumper)
         try:
-            feature = feature_iter.next()
+            feature = next(feature_iter)
             while True:
                 args.outfile.write(json.dumps(feature))
-                feature = feature_iter.next()
+                feature = next(feature_iter)
                 args.outfile.write(',\n')
         except StopIteration:
             args.outfile.write('\n')
