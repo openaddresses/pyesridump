@@ -76,10 +76,12 @@ def main():
     handler.setFormatter(formatter)
     logger.addHandler(handler)
 
+    requested_fields = args.fields.split(',') if args.fields else None
+
     dumper = EsriDumper(args.url,
         extra_query_args=params,
         extra_headers=headers,
-        fields=args.fields.split(','),
+        fields=requested_fields,
         request_geometry=args.request_geometry,
         parent_logger=logger)
 
