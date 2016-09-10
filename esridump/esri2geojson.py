@@ -100,15 +100,12 @@ def convert_esri_polygon(esri_geometry):
 def decode_polygon(esri_rings):
     coords = []
     outer_ring_index = -1
-    print "decode"
+
     for ring in esri_rings:
         if ring_is_clockwise(ring):
-            print "cw"
             coords.append([ring])
             outer_ring_index += 1
         else:
-            print "ccw"
-            print outer_ring_index
             coords[outer_ring_index].append(ring)
 
     if len(coords) == 1:
