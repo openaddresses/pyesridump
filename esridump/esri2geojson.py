@@ -1,4 +1,5 @@
 from itertools import tee
+import math
 
 def esri2geojson(esrijson_feature):
     response = dict(type="Feature", geometry=None, properties=None)
@@ -29,7 +30,7 @@ def convert_esri_point(esri_geometry):
     x_coord = esri_geometry.get('x')
     y_coord = esri_geometry.get('y')
 
-    if x_coord and y_coord:
+    if x_coord and y_coord and not math.isnan(x_coord) and not math.isnan(y_coord):
         return {
             "type": "Point",
             "coordinates": [x_coord, y_coord]
