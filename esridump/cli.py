@@ -97,10 +97,10 @@ def main():
         args.outfile.write('{"type":"FeatureCollection","features":[\n')
         feature_iter = iter(dumper)
         try:
-            feature = feature_iter.next()
+            feature = next(feature_iter)
             while True:
                 args.outfile.write(json.dumps(feature))
-                feature = feature_iter.next()
+                feature = next(feature_iter)
                 args.outfile.write(',\n')
         except StopIteration:
             args.outfile.write('\n')
