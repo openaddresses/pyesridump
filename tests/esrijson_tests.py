@@ -19,22 +19,32 @@ class TestGeoJsonPointConversion(TestEsriJsonToGeoJson):
                     "x": 496814.6,
                     "y": 265006.2
                 },
-                "attributes": {
-                    "string_prop": 151,
-                    "float_prop": 1004.623,
-                    "str_prop": "County Road",
-                    "str_int_prop": "16",
-                }
+                "attributes": None
             },
 
             {
                 "type": "Feature",
-                "properties": {
-                    "string_prop": 151,
-                    "float_prop": 1004.623,
-                    "str_prop": "County Road",
-                    "str_int_prop": "16",
+                "properties": None,
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": [496814.6, 265006.2],
+                }
+            }
+        )
+
+        self.assertEsriJsonBecomesGeoJson(
+            {
+                "geometry": {
+                    "points": [
+                        [496814.6, 265006.2],
+                    ]
                 },
+                "attributes": None
+            },
+
+            {
+                "type": "Feature",
+                "properties": None,
                 "geometry": {
                     "type": "Point",
                     "coordinates": [496814.6, 265006.2],
@@ -52,22 +62,12 @@ class TestGeoJsonPointConversion(TestEsriJsonToGeoJson):
                         [21.79, 36.56]
                     ],
                 },
-                "attributes": {
-                    "string_prop": 151,
-                    "float_prop": 1004.623,
-                    "str_prop": "County Road",
-                    "str_int_prop": "16",
-                }
+                "attributes": None
             },
 
             {
                 "type": "Feature",
-                "properties": {
-                    "string_prop": 151,
-                    "float_prop": 1004.623,
-                    "str_prop": "County Road",
-                    "str_int_prop": "16",
-                },
+                "properties": None,
                 "geometry": {
                     "type": "MultiPoint",
                     "coordinates": [
@@ -178,7 +178,13 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
             {
                 "geometry": {
                     "rings" : [
-                        [[-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832], [-97.06138,32.837]]
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1],
+                            [1,1]
+                        ]
                     ],
                 }
             },
@@ -189,7 +195,61 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
                 "geometry": {
                     "type": "Polygon",
                     "coordinates": [
-                        [[-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832], [-97.06138,32.837]]
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1],
+                            [1,1]
+                        ]
+                    ],
+                }
+            }
+        )
+
+    def test_polygon_with_hole(self):
+        self.assertEsriJsonBecomesGeoJson(
+            {
+                "geometry": {
+                    "rings" : [
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1],
+                            [1,1]
+                        ],
+                        [
+                            [2,2],
+                            [3,2],
+                            [3,3],
+                            [2,3],
+                            [2,2]
+                        ]
+                    ],
+                }
+            },
+
+            {
+                "type": "Feature",
+                "properties": None,
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1],
+                            [1,1]
+                        ],
+                        [
+                            [2,2],
+                            [3,2],
+                            [3,3],
+                            [2,3],
+                            [2,2]
+                        ]
                     ],
                 }
             }
@@ -201,7 +261,12 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
             {
                 "geometry": {
                     "rings" : [
-                        [[-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832]]
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1]
+                        ]
                     ],
                 }
             },
@@ -212,7 +277,13 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
                 "geometry": {
                     "type": "Polygon",
                     "coordinates": [
-                        [[-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832], [-97.06138,32.837]]
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1],
+                            [1,1]
+                        ]
                     ],
                 }
             }
@@ -224,8 +295,17 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
             {
                 "geometry": {
                     "rings" : [
-                        [[-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832], [-97.06138,32.837]],
-                        [[-97.06326,32.759], [-97.06298,32.755], [-97.06326,32.759]]
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1]
+                        ],
+                        [
+                            [1,1],
+                            [1,4],
+                            [1,1]
+                        ]
                     ],
                 }
             },
@@ -236,7 +316,13 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
                 "geometry": {
                     "type": "Polygon",
                     "coordinates": [
-                        [[-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832], [-97.06138,32.837]]
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1],
+                            [1,1]
+                        ]
                     ],
                 }
             }
@@ -247,8 +333,27 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
             {
                 "geometry": {
                     "rings" : [
-                        [[-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832], [-97.06138,32.837]],
-                        [[-97.06326,32.759], [-97.06298,32.755], [-97.06153,32.749], [-97.06326,32.759]]
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1],
+                            [1,1]
+                        ],
+                        [
+                            [2,2],
+                            [3,2],
+                            [3,3],
+                            [2,3],
+                            [2,2]
+                        ],
+                        [
+                            [5,1],
+                            [5,4],
+                            [8,4],
+                            [8,1],
+                            [5,1]
+                        ]
                     ],
                 }
             },
@@ -259,8 +364,31 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
                 "geometry": {
                     "type": "MultiPolygon",
                     "coordinates": [
-                        [[-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832], [-97.06138,32.837]],
-                        [[-97.06326,32.759], [-97.06298,32.755], [-97.06153,32.749], [-97.06326,32.759]]
+                        [
+                            [
+                                [1,1],
+                                [1,4],
+                                [4,4],
+                                [4,1],
+                                [1,1]
+                            ],
+                            [
+                                [2,2],
+                                [3,2],
+                                [3,3],
+                                [2,3],
+                                [2,2]
+                            ]
+                        ],
+                        [
+                            [
+                                [5,1],
+                                [5,4],
+                                [8,4],
+                                [8,1],
+                                [5,1]
+                            ]
+                        ]
                     ],
                 }
             }
@@ -272,8 +400,25 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
             {
                 "geometry": {
                     "rings" : [
-                        [[-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832], [-97.06138,32.837]],
-                        [[-97.06326,32.759], [-97.06298,32.755], [-97.06153,32.749], [-97.06326,32.759]]
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1]
+                        ],
+                        [
+                            [2,2],
+                            [3,2],
+                            [3,3],
+                            [2,3],
+                            [2,2]
+                        ],
+                        [
+                            [5,1],
+                            [5,4],
+                            [8,4],
+                            [8,1]
+                        ]
                     ],
                 }
             },
@@ -284,8 +429,31 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
                 "geometry": {
                     "type": "MultiPolygon",
                     "coordinates": [
-                        [[-97.06138,32.837], [-97.06133,32.836], [-97.06124,32.834], [-97.06127,32.832], [-97.06138,32.837]],
-                        [[-97.06326,32.759], [-97.06298,32.755], [-97.06153,32.749], [-97.06326,32.759]]
+                        [
+                            [
+                                [1,1],
+                                [1,4],
+                                [4,4],
+                                [4,1],
+                                [1,1]
+                            ],
+                            [
+                                [2,2],
+                                [3,2],
+                                [3,3],
+                                [2,3],
+                                [2,2]
+                            ]
+                        ],
+                        [
+                            [
+                                [5,1],
+                                [5,4],
+                                [8,4],
+                                [8,1],
+                                [5,1]
+                            ]
+                        ]
                     ],
                 }
             }

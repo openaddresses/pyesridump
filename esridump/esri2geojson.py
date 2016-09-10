@@ -1,3 +1,5 @@
+from itertools import tee, izip
+
 def esri2geojson(esrijson_feature):
     response = dict(type="Feature", geometry=None, properties=None)
 
@@ -36,12 +38,18 @@ def convert_esri_point(esri_geometry):
         return None
 
 def convert_esri_multipoint(esri_geometry):
-    return {
-        "type": "MultiPoint",
-        "coordinates": [
-            point for point in esri_geometry['points']
-        ]
-    }
+    points = esri_geometry.get('points')
+
+    if len(points) == 1:
+        return {
+            "type": "Point",
+            "coordinates": points[0]
+        }
+    else:
+        return {
+            "type": "MultiPoint",
+            "coordinates": points
+        }
 
 def convert_esri_polyline(esri_geometry):
     paths = esri_geometry.get('paths')
@@ -49,19 +57,12 @@ def convert_esri_polyline(esri_geometry):
     if len(paths) == 1:
         return {
             "type": "LineString",
-            "coordinates": [
-                point for point in paths[0]
-            ]
+            "coordinates": paths[0]
         }
     else:
         return {
             "type": "MultiLineString",
-            "coordinates": [
-                [
-                    point for point in path
-                ]
-                for path in paths
-            ]
+            "coordinates": paths
         }
 
 def convert_esri_polygon(esri_geometry):
@@ -89,21 +90,52 @@ def convert_esri_polygon(esri_geometry):
     if len(clean_rings) == 1:
         return {
             "type": "Polygon",
-            "coordinates": [
-                [
-                    point for point in clean_rings[0]
-                ]
-            ]
+            "coordinates": clean_rings
         }
     elif len(clean_rings) == 0:
         return None
     else:
+        return decode_polygon(clean_rings)
+
+def decode_polygon(esri_rings):
+    coords = []
+    outer_ring_index = -1
+    print "decode"
+    for ring in esri_rings:
+        if ring_is_clockwise(ring):
+            print "cw"
+            coords.append([ring])
+            outer_ring_index += 1
+        else:
+            print "ccw"
+            print outer_ring_index
+            coords[outer_ring_index].append(ring)
+
+    if len(coords) == 1:
+        return {
+            "type": "Polygon",
+            "coordinates": coords[0]
+        }
+    else:
         return {
             "type": "MultiPolygon",
-            "coordinates": [
-                [
-                    point for point in ring
-                ]
-                for ring in clean_rings
-            ]
+            "coordinates": coords
         }
+
+def ring_is_clockwise(ring):
+    """
+    Determine if polygon ring coordinates are clockwise. Clockwise signifies
+    outer ring, counter-clockwise an inner ring or hole. this logic was found
+    at http://stackoverflow.com/questions/1165647/how-to-determine-if-a-list-of-polygon-points-are-in-clockwise-order
+    this code taken from http://esri.github.com/geojson-utils/src/jsonConverters.js by James Cardona (MIT lisense)
+    """
+    total = 0
+    for (pt1, pt2) in pairwise(ring):
+        total += (pt2[0] - pt1[0]) * (pt2[1] + pt1[1])
+    return total >= 0
+
+def pairwise(iterable):
+    "s -> (s0,s1), (s1,s2), (s2, s3), ..."
+    a, b = tee(iterable)
+    next(b, None)
+    return izip(a, b)
