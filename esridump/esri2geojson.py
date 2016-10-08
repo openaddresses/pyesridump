@@ -102,11 +102,15 @@ def decode_polygon(esri_rings):
     outer_ring_index = -1
 
     for ring in esri_rings:
-        if ring_is_clockwise(ring):
-            coords.append([ring])
-            outer_ring_index += 1
-        else:
-            coords[outer_ring_index].append(ring)
+        try:
+            if ring_is_clockwise(ring):
+                coords.append([ring])
+                outer_ring_index += 1
+            else:
+                coords[outer_ring_index].append(ring)
+        except IndexError:
+            # Skip over rings that are in an unexpected order
+            continue
 
     if len(coords) == 1:
         return {
