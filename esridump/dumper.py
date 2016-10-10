@@ -36,9 +36,13 @@ class EsriDumper(object):
         return self._layer_url + url if url else self._layer_url
 
     def _build_query_args(self, query_args=None):
-        complete_args = dict(**self._query_params)
         if query_args:
-            complete_args.update(query_args)
+            complete_args = query_args
+        else:
+            complete_args = {}
+
+        complete_args.update(dict(**self._query_params))
+
         return complete_args
 
     def _build_headers(self, headers=None):
@@ -352,7 +356,6 @@ class EsriDumper(object):
         for query_args in page_args:
             try:
                 response = self._request('POST', query_url, headers=headers, data=query_args)
-
                 data = self._handle_esri_errors(response, "Could not retrieve this chunk of objects")
             except socket.timeout as e:
                 raise EsriDownloadError("Timeout when connecting to URL", e)
