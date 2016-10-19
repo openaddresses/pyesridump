@@ -3,6 +3,13 @@ esri-dump
 
 Scrapes an Esri REST endpoint and writes a GeoJSON file.
 
+## Installation
+
+```bash
+pip install -r requirements.txt
+sudo python setup.py install
+```
+
 ## Usage
 
 ### Command line
