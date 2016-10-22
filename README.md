@@ -3,6 +3,16 @@ esri-dump
 
 Scrapes an Esri REST endpoint and writes a GeoJSON file.
 
+## Installation
+
+If you just want to use the command line tool `esri2geojson`, the recommended way to install this package is to create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) and install it there. This method does not require that you `git clone` this repository and can get you up and running quickly:
+
+```
+virtualenv esridump
+source esridump/bin/activate
+pip install esridump
+```
+
 ## Usage
 
 ### Command line
@@ -56,6 +66,29 @@ In ArcGIS REST API version 10.1, Esri added support for performing various stati
 ### Geometry Quadtree Queries
 
 When a server does not support any of these methods, we'll make recursive quad-tree queries using bounding envelopes. We start with a query for the layer's entire `extent`. If the server returns exactly the `maxRecordCount` number of features, we split that `extent` into 4 equal rectangles and query those. If those smaller queries return `maxRecordCount` features, we split the rectangle again and continue until the server returns something less than the `maxRecordCount`.
+
+## Development
+
+To suggest changes or improvements to this code, create a fork on Github and clone your repository locally:
+
+```
+git clone git@github.com:openaddresses/pyesridump.git # replace with your fork
+cd pyesridump
+```
+
+Set up a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for development and install the dependencies for development:
+
+```
+virtualenv pyesridump
+source pyesridump/bin/activate
+pip install -e .
+```
+
+Your changes to the code will be reflected when you run the `esri2geojson` command from within the virtual environment. You can also run (and add) tests to check that your changes didn't break anything:
+
+```
+nosetests
+```
 
 ## See Also
 This Python module was extracted from OpenAddresses [`machine`](http://github.com/openaddresses/machine), which was inspired by code from [`koop`](https://github.com/koopjs/koop). A similar node/JavaScript module is available in [`esri-dump`](https://github.com/openaddresses/esri-dump).
