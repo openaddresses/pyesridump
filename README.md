@@ -5,7 +5,7 @@ Scrapes an Esri REST endpoint and writes a GeoJSON file.
 
 ## Installation
 
-The recommended way to install this package is to create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) and install it there:
+If you just want to use the command line tool `esri2geojson`, the recommended way to install this package is to create a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) and install it there. This method does not require that you `git clone` this repository and can get you up and running quickly:
 
 ```
 virtualenv esridump
