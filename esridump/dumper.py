@@ -295,11 +295,10 @@ class EsriDumper(object):
             # If not, we can still use the `where` argument to paginate
 
             use_oids = True
+            oid_field_name = self._find_oid_field_name(metadata)
             if metadata.get('supportsStatistics'):
                 # If the layer supports statistics, we can request maximum and minimum object ID
                 # to help build the pages
-
-                oid_field_name = self._find_oid_field_name(metadata)
 
                 if not oid_field_name:
                     raise EsriDownloadError("Could not find object ID field name")
@@ -336,12 +335,19 @@ class EsriDumper(object):
                 # all the individual IDs and page through them one chunk at
                 # a time.
 
-                oids = self._get_layer_oids()
+                oids = sorted(map(int, self._get_layer_oids()))
 
-                for i in range(0, len(oids), 100):
-                    oid_chunk = map(int, oids[i:i+100])
+                for i in range(0, len(oids), page_size):
+                    oid_chunk = oids[i:i+page_size])
+                    page_min = oid_chunk[0]
+                    page_max = oid_chunk[-1]
                     query_args = self._build_query_args({
-                        'objectIds': ','.join(map(str, oid_chunk)),
+                        'where': '{} >= {} AND {} <= {}'.format(
+                            oid_field_name,
+                            page_min,
+                            oid_field_name,
+                            page_max,
+                        ),
                         'geometryPrecision': 7,
                         'returnGeometry': self._request_geometry,
                         'outSR': self._outSR,
