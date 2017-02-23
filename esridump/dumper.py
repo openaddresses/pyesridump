@@ -338,7 +338,7 @@ class EsriDumper(object):
                 oids = sorted(map(int, self._get_layer_oids()))
 
                 for i in range(0, len(oids), page_size):
-                    oid_chunk = oids[i:i+page_size])
+                    oid_chunk = oids[i:i+page_size]
                     page_min = oid_chunk[0]
                     page_max = oid_chunk[-1]
                     query_args = self._build_query_args({
