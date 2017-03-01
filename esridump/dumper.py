@@ -242,6 +242,8 @@ class EsriDumper(object):
         page_size = min(1000, metadata.get('maxRecordCount', 500))
         geometry_type = metadata.get('geometryType')
 
+        row_count = None
+
         try:
             row_count = self.get_feature_count()
         except EsriDownloadError:
@@ -249,8 +251,8 @@ class EsriDumper(object):
 
         page_args = []
 
-        if metadata.get('supportsPagination') or \
-           (metadata.get('advancedQueryCapabilities') and metadata['advancedQueryCapabilities']['supportsPagination']):
+        if row_count is not None and (metadata.get('supportsPagination') or \
+                (metadata.get('advancedQueryCapabilities') and metadata['advancedQueryCapabilities']['supportsPagination'])):
             # If the layer supports pagination, we can use resultOffset/resultRecordCount to paginate
 
             # There's a bug where some servers won't handle these queries in combination with a list of
