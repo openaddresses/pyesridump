@@ -168,7 +168,10 @@ class EsriDumper(object):
         headers = self._build_headers()
         response = self._request('GET', url, params=query_args, headers=headers)
         oid_data = self._handle_esri_errors(response, "Could not retrieve object IDs")
-        return oid_data['objectIds']
+        oids = oid_data.get('objectIds')
+        if not oids:
+            raise EsriDownloadError("Server doesn't support returnIdsOnly")
+        return oids
 
     def _fetch_bounded_features(self, envelope, outSR):
         query_args = self._build_query_args({
@@ -336,6 +339,7 @@ class EsriDumper(object):
                         page_args.append(query_args)
                     self._logger.info("Built %s requests using OID enumeration method", len(page_args))
                 except EsriDownloadError:
+                    self._logger.info("Falling back to geo queries")
                     # Use geospatial queries when none of the ID-based methods will work
                     bounds = metadata['extent']
                     saved = set()
