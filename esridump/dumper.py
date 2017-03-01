@@ -244,27 +244,6 @@ class EsriDumper(object):
         except EsriDownloadError:
             self._logger.info("Source does not support feature count")
 
-            # Use geospatial queries when none of the ID-based methods will work
-            oid_field_name = self._find_oid_field_name(metadata)
-
-            if not oid_field_name:
-                raise EsriDownloadError("Could not find object ID field name for deduplication")
-
-            bounds = metadata['extent']
-            saved = set()
-
-            for feature in self._scrape_an_envelope(bounds, self._outSR, page_size):
-                attrs = feature['attributes']
-                oid = attrs.get(oid_field_name)
-                if oid in saved:
-                    continue
-
-                yield esri2geojson(feature)
-
-                saved.add(oid)
-
-            return
-
         page_args = []
 
         if metadata.get('supportsPagination') or \
@@ -296,6 +275,9 @@ class EsriDumper(object):
 
             use_oids = True
             oid_field_name = self._find_oid_field_name(metadata)
+            if not oid_field_name:
+                raise EsriDownloadError("Could not find object ID field name for deduplication")
+
             if metadata.get('supportsStatistics'):
                 # If the layer supports statistics, we can request maximum and minimum object ID
                 # to help build the pages
@@ -335,27 +317,44 @@ class EsriDumper(object):
                 # all the individual IDs and page through them one chunk at
                 # a time.
 
-                oids = sorted(map(int, self._get_layer_oids()))
+                try:
+                    oids = sorted(map(int, self._get_layer_oids()))
 
-                for i in range(0, len(oids), page_size):
-                    oid_chunk = oids[i:i+page_size]
-                    page_min = oid_chunk[0]
-                    page_max = oid_chunk[-1]
-                    query_args = self._build_query_args({
-                        'where': '{} >= {} AND {} <= {}'.format(
-                            oid_field_name,
-                            page_min,
-                            oid_field_name,
-                            page_max,
-                        ),
-                        'geometryPrecision': 7,
-                        'returnGeometry': self._request_geometry,
-                        'outSR': self._outSR,
-                        'outFields': ','.join(query_fields or ['*']),
-                        'f': 'json',
-                    })
-                    page_args.append(query_args)
-                self._logger.info("Built %s requests using OID enumeration method", len(page_args))
+                    for i in range(0, len(oids), page_size):
+                        oid_chunk = oids[i:i+page_size]
+                        page_min = oid_chunk[0]
+                        page_max = oid_chunk[-1]
+                        query_args = self._build_query_args({
+                            'where': '{} >= {} AND {} <= {}'.format(
+                                oid_field_name,
+                                page_min,
+                                oid_field_name,
+                                page_max,
+                            ),
+                            'geometryPrecision': 7,
+                            'returnGeometry': self._request_geometry,
+                            'outSR': self._outSR,
+                            'outFields': ','.join(query_fields or ['*']),
+                            'f': 'json',
+                        })
+                        page_args.append(query_args)
+                    self._logger.info("Built %s requests using OID enumeration method", len(page_args))
+                except EsriDownloadError:
+                    # Use geospatial queries when none of the ID-based methods will work
+                    bounds = metadata['extent']
+                    saved = set()
+
+                    for feature in self._scrape_an_envelope(bounds, self._outSR, page_size):
+                        attrs = feature['attributes']
+                        oid = attrs.get(oid_field_name)
+                        if oid in saved:
+                            continue
+
+                        yield esri2geojson(feature)
+
+                        saved.add(oid)
+
+                    return
 
         query_url = self._build_url('/query')
         headers = self._build_headers()
