@@ -281,10 +281,6 @@ class EsriDumper(object):
             if metadata.get('supportsStatistics'):
                 # If the layer supports statistics, we can request maximum and minimum object ID
                 # to help build the pages
-
-                if not oid_field_name:
-                    raise EsriDownloadError("Could not find object ID field name")
-
                 try:
                     (oid_min, oid_max) = self._get_layer_min_max(oid_field_name)
 
