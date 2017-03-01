@@ -268,7 +268,7 @@ class TestEsriDownload(unittest.TestCase):
         with self.assertRaisesRegexp(EsriDownloadError, "Could not connect to URL"):
             list(dump)
 
-    def test_geo_queries_when_count_doesnt_work(self):
+    def test_geo_queries_when_oid_enumeration_doesnt_work(self):
         self.add_fixture_response(
             '.*/\?f=json.*',
             'us-il-cook/metadata.json',
@@ -277,6 +277,11 @@ class TestEsriDownload(unittest.TestCase):
         self.add_fixture_response(
             '.*returnCountOnly=true.*',
             'us-il-cook/count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-il-cook/ids-only.json',
             method='GET',
         )
         self.add_fixture_response(
