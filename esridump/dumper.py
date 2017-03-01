@@ -221,7 +221,7 @@ class EsriDumper(object):
     def _scrape_an_envelope(self, envelope, outSR, max_records):
         features = self._fetch_bounded_features(envelope, outSR)
 
-        if len(features) == max_records:
+        if len(features) >= max_records:
             self._logger.info("Retrieved exactly the maximum record count. Splitting this box and retrieving the children.")
 
             envelopes = self._split_envelope(envelope)
