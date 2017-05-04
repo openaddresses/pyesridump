@@ -2,6 +2,7 @@ import logging
 import requests
 import simplejson as json
 import socket
+import urllib
 
 from esridump import esri2geojson
 from esridump.errors import EsriDownloadError
@@ -10,7 +11,7 @@ class EsriDumper(object):
     def __init__(self, url, parent_logger=None,
         extra_query_args=None, extra_headers=None,
         timeout=None, fields=None, request_geometry=True,
-        outSR=None):
+        outSR=None,proxy=None):
         self._layer_url = url
         self._query_params = extra_query_args or {}
         self._headers = extra_headers or {}
@@ -18,6 +19,7 @@ class EsriDumper(object):
         self._fields = fields or None
         self._outSR = outSR or '4326'
         self._request_geometry = request_geometry
+        self._proxy = proxy or None
 
         if parent_logger:
             self._logger = parent_logger.getChild('esridump')
@@ -27,6 +29,13 @@ class EsriDumper(object):
     def _request(self, method, url, **kwargs):
         try:
             self._logger.debug("Requesting %s with args %s", url, kwargs.get('params') or kwargs.get('data'))
+
+            if self._proxy and kwargs.get('params'):
+                url = self._proxy + url + '?' + urllib.urlencode(kwargs.get('params'))
+                del kwargs['params']
+            elif self._proxy:
+                url = self._proxy + url
+
             return requests.request(method, url, timeout=self._http_timeout, **kwargs)
         except requests.exceptions.SSLError:
             self._logger.warning("Retrying %s without SSL verification", url)
