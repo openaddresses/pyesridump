@@ -30,11 +30,12 @@ class EsriDumper(object):
         try:
             self._logger.debug("Requesting %s with args %s", url, kwargs.get('params') or kwargs.get('data'))
 
-            if self._proxy and kwargs.get('params'):
-                url = self._proxy + url + '?' + urllib.urlencode(kwargs.get('params'))
-                del kwargs['params']
-            elif self._proxy:
+            if self._proxy:
                 url = self._proxy + url
+                
+                if kwargs.get('params'):
+                    url += '?' + urllib.urlencode(kwargs.get('params'))
+                    del kwargs['params']
 
             return requests.request(method, url, timeout=self._http_timeout, **kwargs)
         except requests.exceptions.SSLError:
