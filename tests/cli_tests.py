@@ -104,6 +104,6 @@ class TestEsriDumpCommandlineMain(unittest.TestCase):
 
         esridump.cli.main()
 
-        self.assertIn('where=foo%3Dbar&', self.responses.calls[2].request.url)
+        self.assertIn('where=foo%3Dbar', self.responses.calls[2].request.url)
         self.assertIn('where=%28OBJECTID+%3E%3D+70193+AND+OBJECTID+%3C%3D+70307%29+AND+%28foo%3Dbar%29', self.responses.calls[3].request.body)
         self.assertEqual(self.mock_outfile.write.call_count, 14)
