@@ -32,7 +32,7 @@ class EsriDumper(object):
 
             if self._proxy:
                 url = self._proxy + url
-                
+
                 if kwargs.get('params'):
                     url += '?' + urllib.urlencode(kwargs.get('params'))
                     del kwargs['params']
@@ -51,7 +51,19 @@ class EsriDumper(object):
         else:
             complete_args = {}
 
-        complete_args.update(dict(**self._query_params))
+        override_args = dict(**self._query_params)
+
+        override_where = override_args.get('where')
+        requested_where = query_args.get('where')
+        if override_where and requested_where != '1=1':
+            # AND the where args together if the user is trying to override
+            # the where param and we're trying to get 'all the rows'
+            override_args['where'] = '({}) AND ({})'.format(
+                requested_where,
+                override_where,
+            )
+
+        complete_args.update(override_args)
 
         return complete_args
 
