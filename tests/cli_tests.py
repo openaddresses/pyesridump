@@ -31,7 +31,7 @@ class TestEsriDumpCommandlineMain(unittest.TestCase):
         self.responses.start()
 
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            '.*f=json.*',
             'us-ca-carson/us-ca-carson-metadata.json',
             method='GET',
         )
@@ -98,3 +98,12 @@ class TestEsriDumpCommandlineMain(unittest.TestCase):
 
         # jsonlines won't have FeatureCollection wrapper
         self.assertEqual(self.mock_outfile.write.call_count, 12)
+
+    def test_cli_override_where(self):
+        self.parse_return.params = ['where=foo=bar']
+
+        esridump.cli.main()
+
+        self.assertIn('where=foo%3Dbar', self.responses.calls[2].request.url)
+        self.assertIn('where=%28OBJECTID+%3E%3D+70193+AND+OBJECTID+%3C%3D+70307%29+AND+%28foo%3Dbar%29', self.responses.calls[3].request.body)
+        self.assertEqual(self.mock_outfile.write.call_count, 14)
