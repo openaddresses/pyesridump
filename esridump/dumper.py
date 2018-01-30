@@ -2,7 +2,7 @@ import logging
 import requests
 import simplejson as json
 import socket
-import urllib
+from six.moves.urllib.parse import urlencode
 
 from esridump import esri2geojson
 from esridump.errors import EsriDownloadError
@@ -28,15 +28,15 @@ class EsriDumper(object):
 
     def _request(self, method, url, **kwargs):
         try:
-            self._logger.debug("Requesting %s with args %s", url, kwargs.get('params') or kwargs.get('data'))
 
             if self._proxy:
                 url = self._proxy + url
 
-                if kwargs.get('params'):
-                    url += '?' + urllib.urlencode(kwargs.get('params'))
-                    del kwargs['params']
+                params = kwargs.pop('params', None)
+                if params:
+                    url += '?' + urlencode(params)
 
+            self._logger.debug("%s %s, args %s", method, url, kwargs.get('params') or kwargs.get('data'))
             return requests.request(method, url, timeout=self._http_timeout, **kwargs)
         except requests.exceptions.SSLError:
             self._logger.warning("Retrying %s without SSL verification", url)
@@ -75,7 +75,8 @@ class EsriDumper(object):
 
     def _handle_esri_errors(self, response, error_message):
         if response.status_code != 200:
-            raise EsriDownloadError('{}: HTTP {} {}'.format(
+            raise EsriDownloadError('{}: {} HTTP {} {}'.format(
+                response.request.url,
                 error_message,
                 response.status_code,
                 response.text,
