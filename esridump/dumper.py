@@ -11,7 +11,7 @@ class EsriDumper(object):
     def __init__(self, url, parent_logger=None,
         extra_query_args=None, extra_headers=None,
         timeout=None, fields=None, request_geometry=True,
-        outSR=None, proxy=None):
+        outSR=None, proxy=None, oidField=None):
         self._layer_url = url
         self._query_params = extra_query_args or {}
         self._headers = extra_headers or {}
@@ -20,6 +20,7 @@ class EsriDumper(object):
         self._outSR = outSR or '4326'
         self._request_geometry = request_geometry
         self._proxy = proxy or None
+        self._oidField = oidField or None
 
         if parent_logger:
             self._logger = parent_logger.getChild('esridump')
@@ -154,7 +155,7 @@ class EsriDumper(object):
         oid_field_name = metadata.get('objectIdField')
         if not oid_field_name:
             for f in metadata['fields']:
-                if f['type'] == 'esriFieldTypeOID':
+                if 'type' in f and f['type'] == 'esriFieldTypeOID':
                     oid_field_name = f['name']
                     break
 
@@ -302,7 +303,10 @@ class EsriDumper(object):
             # If not, we can still use the `where` argument to paginate
 
             use_oids = True
-            oid_field_name = self._find_oid_field_name(metadata)
+            if self._oidField:
+                oid_field_name = self._oidField
+            else:
+                oid_field_name = self._find_oid_field_name(metadata)
             if not oid_field_name:
                 raise EsriDownloadError("Could not find object ID field name for deduplication")
 
