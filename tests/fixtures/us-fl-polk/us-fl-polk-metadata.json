@@ -1,0 +1,857 @@
+{
+    "currentVersion": 10.22,
+    "id": 0,
+    "name": "Addresses (visible at 1:2500)",
+    "type": "Feature Layer",
+    "description": "",
+    "geometryType": "esriGeometryPoint",
+    "copyrightText": "",
+    "parentLayer": null,
+    "subLayers": [],
+    "minScale": 2501,
+    "maxScale": 0,
+    "drawingInfo": {
+        "renderer": {
+            "type": "simple",
+            "symbol": {
+                "type": "esriSMS",
+                "style": "esriSMSCircle",
+                "color": [
+                    0,
+                    0,
+                    0,
+                    0
+                ],
+                "size": 4,
+                "angle": 0,
+                "xoffset": 0,
+                "yoffset": 0,
+                "outline": null
+            },
+            "label": "",
+            "description": ""
+        },
+        "transparency": 0,
+        "labelingInfo": [
+            {
+                "labelPlacement": "esriServerPointLabelPlacementAboveRight",
+                "where": null,
+                "labelExpression": "[HouseNumber]",
+                "useCodedValues": true,
+                "symbol": {
+                    "type": "esriTS",
+                    "color": [
+                        168,
+                        0,
+                        0,
+                        255
+                    ],
+                    "backgroundColor": null,
+                    "borderLineColor": null,
+                    "borderLineSize": null,
+                    "verticalAlignment": "bottom",
+                    "horizontalAlignment": "center",
+                    "rightToLeft": false,
+                    "angle": 0,
+                    "xoffset": 0,
+                    "yoffset": 0,
+                    "kerning": true,
+                    "haloColor": [
+                        156,
+                        156,
+                        156,
+                        255
+                    ],
+                    "haloSize": 2,
+                    "font": {
+                        "family": "Arial",
+                        "size": 8,
+                        "style": "normal",
+                        "weight": "bold",
+                        "decoration": "none"
+                    }
+                },
+                "minScale": 0,
+                "maxScale": 0
+            }
+        ]
+    },
+    "defaultVisibility": false,
+    "extent": {
+        "xmin": -82.10125958482321,
+        "ymin": 27.64294786029242,
+        "xmax": -81.12773092284728,
+        "ymax": 28.359597901613128,
+        "spatialReference": {
+            "wkid": 4326,
+            "latestWkid": 4326
+        }
+    },
+    "hasAttachments": false,
+    "htmlPopupType": "esriServerHTMLPopupTypeNone",
+    "displayField": "PrimaryName",
+    "typeIdField": null,
+    "fields": [
+        {
+            "name": "OBJECTID",
+            "type": "esriFieldTypeOID",
+            "alias": "OBJECTID",
+            "domain": null
+        },
+        {
+            "name": "Shape",
+            "type": "esriFieldTypeGeometry",
+            "alias": "Shape",
+            "domain": null
+        },
+        {
+            "name": "MCode",
+            "type": "esriFieldTypeInteger",
+            "alias": "MCode",
+            "domain": null
+        },
+        {
+            "name": "ESN",
+            "type": "esriFieldTypeInteger",
+            "alias": "ESN",
+            "domain": null
+        },
+        {
+            "name": "GPSFLG",
+            "type": "esriFieldTypeString",
+            "alias": "GPSFLG",
+            "length": 1,
+            "domain": {
+                "type": "codedValue",
+                "name": "GPSFlagType",
+                "codedValues": [
+                    {
+                        "name": "Previously Flagged, Confirmed on Ortho",
+                        "code": "A"
+                    },
+                    {
+                        "name": "Flagged, Site is NOT on Ortho",
+                        "code": "B"
+                    },
+                    {
+                        "name": "Comment, Need GPS Transfer",
+                        "code": "C"
+                    },
+                    {
+                        "name": "New Site added by town, not on ortho, NEED GPS",
+                        "code": "D"
+                    },
+                    {
+                        "name": "Added with Development Tools, need to have address/photo captured in field",
+                        "code": "E"
+                    },
+                    {
+                        "name": "Check ortho before sending out",
+                        "code": "F"
+                    },
+                    {
+                        "name": "GPS Tech added site in the field without being prompted",
+                        "code": "G"
+                    },
+                    {
+                        "name": "cleared comment  in the field",
+                        "code": "H"
+                    },
+                    {
+                        "name": "Duplicate site",
+                        "code": "J"
+                    },
+                    {
+                        "name": "Field Verified - Unnit in existing site",
+                        "code": "K"
+                    },
+                    {
+                        "name": "Not Required",
+                        "code": "N"
+                    },
+                    {
+                        "name": "Field Verified - Problem at site, see comment",
+                        "code": "P"
+                    },
+                    {
+                        "name": "Field Verified - See Comment",
+                        "code": "S"
+                    },
+                    {
+                        "name": "Field Unconfirmed - could not find anything to confirm",
+                        "code": "U"
+                    },
+                    {
+                        "name": "Field Verified",
+                        "code": "V"
+                    },
+                    {
+                        "name": "GPS requrested and completed",
+                        "code": "X"
+                    },
+                    {
+                        "name": "Flagged for coordinate check",
+                        "code": "Y"
+                    },
+                    {
+                        "name": "Requested GPS - Look for site in the field",
+                        "code": "W"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "LR",
+            "type": "esriFieldTypeString",
+            "alias": "LR",
+            "length": 1,
+            "domain": {
+                "type": "codedValue",
+                "name": "LeftRight",
+                "codedValues": [
+                    {
+                        "name": "Left",
+                        "code": "L"
+                    },
+                    {
+                        "name": "Right",
+                        "code": "R"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Comments",
+            "type": "esriFieldTypeString",
+            "alias": "Comments",
+            "length": 255,
+            "domain": null
+        },
+        {
+            "name": "Flag",
+            "type": "esriFieldTypeString",
+            "alias": "Flag",
+            "length": 10,
+            "domain": null
+        },
+        {
+            "name": "Flg",
+            "type": "esriFieldTypeSmallInteger",
+            "alias": "Flg",
+            "domain": null
+        },
+        {
+            "name": "DelRec",
+            "type": "esriFieldTypeInteger",
+            "alias": "DelRec",
+            "domain": {
+                "type": "codedValue",
+                "name": "YesNo",
+                "codedValues": [
+                    {
+                        "name": "Yes",
+                        "code": 1
+                    },
+                    {
+                        "name": "No",
+                        "code": 0
+                    }
+                ]
+            }
+        },
+        {
+            "name": "ESiteID",
+            "type": "esriFieldTypeInteger",
+            "alias": "ESiteID",
+            "domain": null
+        },
+        {
+            "name": "SiteType",
+            "type": "esriFieldTypeString",
+            "alias": "SITETYPE",
+            "length": 2,
+            "domain": {
+                "type": "codedValue",
+                "name": "SiteTypes_1",
+                "codedValues": [
+                    {
+                        "name": "Single Family",
+                        "code": "R1"
+                    },
+                    {
+                        "name": "Multi Family",
+                        "code": "R2"
+                    },
+                    {
+                        "name": "Mobile Home",
+                        "code": "R3"
+                    },
+                    {
+                        "name": "Other Residential",
+                        "code": "R4"
+                    },
+                    {
+                        "name": "Camp/Bungalow",
+                        "code": "R5"
+                    },
+                    {
+                        "name": "Seaonal Home",
+                        "code": "R6"
+                    },
+                    {
+                        "name": "Commercial",
+                        "code": "C1"
+                    },
+                    {
+                        "name": "Commercial Farm",
+                        "code": "CF"
+                    },
+                    {
+                        "name": "Lodging",
+                        "code": "CL"
+                    },
+                    {
+                        "name": "Other Commercial",
+                        "code": "C9"
+                    },
+                    {
+                        "name": "Government",
+                        "code": "P1"
+                    },
+                    {
+                        "name": "PSAP",
+                        "code": "PS"
+                    },
+                    {
+                        "name": "Health Care",
+                        "code": "P2"
+                    },
+                    {
+                        "name": "Church",
+                        "code": "P3"
+                    },
+                    {
+                        "name": "Educational",
+                        "code": "P4"
+                    },
+                    {
+                        "name": "Cultural",
+                        "code": "P5"
+                    },
+                    {
+                        "name": "Police",
+                        "code": "P6"
+                    },
+                    {
+                        "name": "Fire",
+                        "code": "P7"
+                    },
+                    {
+                        "name": "Public Gathering",
+                        "code": "P8"
+                    },
+                    {
+                        "name": "Ambulance House",
+                        "code": "P9"
+                    },
+                    {
+                        "name": "Cemetery",
+                        "code": "P0"
+                    },
+                    {
+                        "name": "Industrial",
+                        "code": "I1"
+                    },
+                    {
+                        "name": "Utility",
+                        "code": "U1"
+                    },
+                    {
+                        "name": "Public Telephone",
+                        "code": "ET"
+                    },
+                    {
+                        "name": "Hydrant",
+                        "code": "EH"
+                    },
+                    {
+                        "name": "Dry Hydrant",
+                        "code": "ED"
+                    },
+                    {
+                        "name": "Fire Pond",
+                        "code": "EP"
+                    },
+                    {
+                        "name": "Bridge",
+                        "code": "B1"
+                    },
+                    {
+                        "name": "Airport",
+                        "code": "B2"
+                    },
+                    {
+                        "name": "Helipad",
+                        "code": "B3"
+                    },
+                    {
+                        "name": "Campground",
+                        "code": "B4"
+                    },
+                    {
+                        "name": "Culvert",
+                        "code": "B9"
+                    },
+                    {
+                        "name": "Hanger",
+                        "code": "H1"
+                    },
+                    {
+                        "name": "Accessory Building",
+                        "code": "A1"
+                    },
+                    {
+                        "name": "Abandoned",
+                        "code": "A2"
+                    },
+                    {
+                        "name": "Group Mailbox",
+                        "code": "A3"
+                    },
+                    {
+                        "name": "Access Point",
+                        "code": "A9"
+                    },
+                    {
+                        "name": "Town Boundary Post",
+                        "code": "TB"
+                    },
+                    {
+                        "name": "Dev Site",
+                        "code": "DV"
+                    },
+                    {
+                        "name": "Gated w/o Building",
+                        "code": "G1"
+                    },
+                    {
+                        "name": "Gated w/ Building",
+                        "code": "G2"
+                    },
+                    {
+                        "name": "Other",
+                        "code": "98"
+                    },
+                    {
+                        "name": "No Gate, No See",
+                        "code": "99"
+                    },
+                    {
+                        "name": "Special Comment",
+                        "code": "SC"
+                    },
+                    {
+                        "name": "GIS Comment",
+                        "code": "GC"
+                    },
+                    {
+                        "name": "Verification Comment",
+                        "code": "VC"
+                    },
+                    {
+                        "name": "Old Comment",
+                        "code": "OC"
+                    },
+                    {
+                        "name": "Not A Site",
+                        "code": "XX"
+                    },
+                    {
+                        "name": "Cell Tower",
+                        "code": "CT"
+                    },
+                    {
+                        "name": "Nursing Home",
+                        "code": "N1"
+                    },
+                    {
+                        "name": "Traffic Signal",
+                        "code": "TS"
+                    },
+                    {
+                        "name": "Doctors Office",
+                        "code": "D1"
+                    },
+                    {
+                        "name": "Park",
+                        "code": "BP"
+                    },
+                    {
+                        "name": "Golf Course",
+                        "code": "G4"
+                    },
+                    {
+                        "name": "Club House",
+                        "code": "CH"
+                    },
+                    {
+                        "name": "Chemicals",
+                        "code": "C4"
+                    },
+                    {
+                        "name": "Locked Gate",
+                        "code": "L1"
+                    },
+                    {
+                        "name": "Post Office",
+                        "code": "PO"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "Zip",
+            "type": "esriFieldTypeString",
+            "alias": "Zip",
+            "length": 5,
+            "domain": null
+        },
+        {
+            "name": "GPSX",
+            "type": "esriFieldTypeDouble",
+            "alias": "GPSX",
+            "domain": null
+        },
+        {
+            "name": "GPSY",
+            "type": "esriFieldTypeDouble",
+            "alias": "GPSY",
+            "domain": null
+        },
+        {
+            "name": "StreetID",
+            "type": "esriFieldTypeInteger",
+            "alias": "StreetID",
+            "domain": null
+        },
+        {
+            "name": "JBoundID",
+            "type": "esriFieldTypeInteger",
+            "alias": "JBoundID",
+            "domain": null
+        },
+        {
+            "name": "ParcelNum",
+            "type": "esriFieldTypeString",
+            "alias": "ParcelNum",
+            "length": 20,
+            "domain": null
+        },
+        {
+            "name": "PD",
+            "type": "esriFieldTypeString",
+            "alias": "PD",
+            "length": 5,
+            "domain": null
+        },
+        {
+            "name": "PT",
+            "type": "esriFieldTypeString",
+            "alias": "PT",
+            "length": 5,
+            "domain": null
+        },
+        {
+            "name": "SN",
+            "type": "esriFieldTypeString",
+            "alias": "SN",
+            "length": 50,
+            "domain": null
+        },
+        {
+            "name": "ST",
+            "type": "esriFieldTypeString",
+            "alias": "ST",
+            "length": 5,
+            "domain": null
+        },
+        {
+            "name": "SD",
+            "type": "esriFieldTypeString",
+            "alias": "SD",
+            "length": 5,
+            "domain": null
+        },
+        {
+            "name": "GeoNameID",
+            "type": "esriFieldTypeInteger",
+            "alias": "GeoNameID",
+            "domain": null
+        },
+        {
+            "name": "ZN",
+            "type": "esriFieldTypeString",
+            "alias": "ZN",
+            "length": 50,
+            "domain": null
+        },
+        {
+            "name": "HouseNumber",
+            "type": "esriFieldTypeString",
+            "alias": "HouseNumber",
+            "length": 15,
+            "domain": null
+        },
+        {
+            "name": "HouseInt",
+            "type": "esriFieldTypeInteger",
+            "alias": "HouseInt",
+            "domain": null
+        },
+        {
+            "name": "PrimaryAddress",
+            "type": "esriFieldTypeString",
+            "alias": "PrimaryAddress",
+            "length": 100,
+            "domain": null
+        },
+        {
+            "name": "ALIAddress",
+            "type": "esriFieldTypeString",
+            "alias": "ALIAddress",
+            "length": 100,
+            "domain": null
+        },
+        {
+            "name": "AddrLocation",
+            "type": "esriFieldTypeString",
+            "alias": "AddrLocation",
+            "length": 2,
+            "domain": {
+                "type": "codedValue",
+                "name": "AddressCalc",
+                "codedValues": [
+                    {
+                        "name": "Building",
+                        "code": "B"
+                    },
+                    {
+                        "name": "Access Point",
+                        "code": "A"
+                    },
+                    {
+                        "name": "Driveway",
+                        "code": "D"
+                    }
+                ]
+            }
+        },
+        {
+            "name": "PrimaryName",
+            "type": "esriFieldTypeString",
+            "alias": "PrimaryName",
+            "length": 100,
+            "domain": null
+        },
+        {
+            "name": "ALIName",
+            "type": "esriFieldTypeString",
+            "alias": "ALIName",
+            "length": 100,
+            "domain": null
+        },
+        {
+            "name": "Alias1",
+            "type": "esriFieldTypeString",
+            "alias": "Alias1",
+            "length": 60,
+            "domain": null
+        },
+        {
+            "name": "Alias2",
+            "type": "esriFieldTypeString",
+            "alias": "Alias2",
+            "length": 60,
+            "domain": null
+        },
+        {
+            "name": "Alias3",
+            "type": "esriFieldTypeString",
+            "alias": "Alias3",
+            "length": 60,
+            "domain": null
+        },
+        {
+            "name": "Alias4",
+            "type": "esriFieldTypeString",
+            "alias": "Alias4",
+            "length": 60,
+            "domain": null
+        },
+        {
+            "name": "Alias5",
+            "type": "esriFieldTypeString",
+            "alias": "Alias5",
+            "length": 60,
+            "domain": null
+        },
+        {
+            "name": "CREATION_DATE",
+            "type": "esriFieldTypeDouble",
+            "alias": "CREATION_DATE",
+            "domain": null
+        },
+        {
+            "name": "C1_EXCEPTION",
+            "type": "esriFieldTypeInteger",
+            "alias": "C1_EXCEPTION",
+            "domain": null
+        },
+        {
+            "name": "MODIFY_USER",
+            "type": "esriFieldTypeString",
+            "alias": "MODIFY_USER",
+            "length": 50,
+            "domain": null
+        },
+        {
+            "name": "MODIFY_DATE",
+            "type": "esriFieldTypeDouble",
+            "alias": "MODIFY_DATE",
+            "domain": null
+        },
+        {
+            "name": "CREATION_USER",
+            "type": "esriFieldTypeString",
+            "alias": "CREATION_USER",
+            "length": 50,
+            "domain": null
+        },
+        {
+            "name": "SiteTypeCode",
+            "type": "esriFieldTypeString",
+            "alias": "SiteTypeCode",
+            "length": 2,
+            "domain": null
+        },
+        {
+            "name": "Unit",
+            "type": "esriFieldTypeString",
+            "alias": "Unit",
+            "length": 40,
+            "domain": null
+        },
+        {
+            "name": "County",
+            "type": "esriFieldTypeString",
+            "alias": "County",
+            "length": 154,
+            "domain": null
+        },
+        {
+            "name": "City_Ovr",
+            "type": "esriFieldTypeString",
+            "alias": "City_Ovr",
+            "length": 3,
+            "domain": null
+        },
+        {
+            "name": "Blg",
+            "type": "esriFieldTypeString",
+            "alias": "Blg",
+            "length": 3,
+            "domain": null
+        },
+        {
+            "name": "Apt",
+            "type": "esriFieldTypeString",
+            "alias": "Apt",
+            "length": 3,
+            "domain": null
+        },
+        {
+            "name": "Sign",
+            "type": "esriFieldTypeString",
+            "alias": "Sign",
+            "length": 1,
+            "domain": null
+        },
+        {
+            "name": "PMOD",
+            "type": "esriFieldTypeString",
+            "alias": "PMOD",
+            "length": 10,
+            "domain": null
+        },
+        {
+            "name": "FEMOD",
+            "type": "esriFieldTypeString",
+            "alias": "FEMOD",
+            "length": 10,
+            "domain": null
+        },
+        {
+            "name": "P_Override",
+            "type": "esriFieldTypeString",
+            "alias": "P_Override",
+            "length": 8,
+            "domain": null
+        },
+        {
+            "name": "MailingCity",
+            "type": "esriFieldTypeString",
+            "alias": "MailingCity",
+            "length": 254,
+            "domain": null
+        },
+        {
+            "name": "ESN_City_Name",
+            "type": "esriFieldTypeString",
+            "alias": "ESN_City_Name",
+            "length": 254,
+            "domain": null
+        },
+        {
+            "name": "City_Code",
+            "type": "esriFieldTypeString",
+            "alias": "City_Code",
+            "length": 5,
+            "domain": null
+        },
+        {
+            "name": "T_MailingCityNm",
+            "type": "esriFieldTypeString",
+            "alias": "T_MailingCityNm",
+            "length": 254,
+            "domain": null
+        },
+        {
+            "name": "FE_OVERRIDE",
+            "type": "esriFieldTypeString",
+            "alias": "FE_OVERRIDE",
+            "length": 10,
+            "domain": null
+        },
+        {
+            "name": "GlobalID",
+            "type": "esriFieldTypeGlobalID",
+            "alias": "GlobalID",
+            "length": 38,
+            "domain": null
+        }
+    ],
+    "relationships": [],
+    "canModifyLayer": false,
+    "canScaleSymbols": false,
+    "hasLabels": true,
+    "capabilities": "Map,Query,Data",
+    "maxRecordCount": 1000,
+    "supportsStatistics": true,
+    "supportsAdvancedQueries": true,
+    "supportedQueryFormats": "JSON, AMF",
+    "isDataVersioned": true,
+    "ownershipBasedAccessControlForFeatures": {
+        "allowOthersToQuery": true
+    },
+    "useStandardizedQueries": true
+}

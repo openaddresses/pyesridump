@@ -6,6 +6,7 @@ import re
 from esridump.dumper import EsriDumper
 from esridump.errors import EsriDownloadError
 
+
 class TestEsriDownload(unittest.TestCase):
     def setUp(self):
         self.responses = responses.RequestsMock()
@@ -71,6 +72,16 @@ class TestEsriDownload(unittest.TestCase):
             method='GET',
         )
         self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-ms-madison/us-ms-madison-ids-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-ms-madison/us-ms-madison-ids-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
             '.*query.*',
             'us-ms-madison/us-ms-madison-0.json',
             method='POST',
@@ -120,6 +131,16 @@ class TestEsriDownload(unittest.TestCase):
             method='GET',
         )
         self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-ca-tuolumne/us-ca-tuolumne-ids-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-ca-tuolumne/us-ca-tuolumne-ids-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
             '.*query.*',
             'us-ca-tuolumne/us-ca-tuolumne-0.json',
             method='POST',
@@ -129,6 +150,43 @@ class TestEsriDownload(unittest.TestCase):
         data = list(dump)
 
         self.assertEqual(15, len(data))
+
+    def test_oid_enumeration_when_wrong_min_max_is_given(self):
+        self.add_fixture_response(
+            '.*/\?f=json.*',
+            'us-fl-polk/us-fl-polk-metadata.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-fl-polk/us-fl-polk-count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*outStatistics=.*',
+            'us-fl-polk/us-fl-polk-statistics.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-fl-polk/us-fl-polk-ids-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-fl-polk/us-fl-polk-ids-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*query.*',
+            'us-fl-polk/us-fl-polk-0.json',
+            method='POST',
+        )
+
+        dump = EsriDumper(self.fake_url)
+        data = list(dump)
+
+        self.assertEqual(10, len(data))
 
     def test_oid_enumeration_when_statistics_doesnt_work(self):
         self.add_fixture_response(

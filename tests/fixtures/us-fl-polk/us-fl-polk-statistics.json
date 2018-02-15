@@ -1,0 +1,1 @@
+{"displayFieldName": "", "fieldAliases": {"THE_MIN": "THE_MIN", "THE_MAX": "THE_MAX"}, "fields": [{"name": "THE_MIN", "type": "esriFieldTypeInteger", "alias": "THE_MIN"}, {"name": "THE_MAX", "type": "esriFieldTypeInteger", "alias": "THE_MAX"}], "features": [{"attributes": {"THE_MIN": 2335900, "THE_MAX": 2670953}}]}

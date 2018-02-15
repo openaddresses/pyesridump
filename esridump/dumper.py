@@ -179,7 +179,33 @@ class EsriDumper(object):
         # for the attribute names rather than the requested field names, so pick the min and max
         # deliberately rather than relying on the names.
         min_max_values = metadata['features'][0]['attributes'].values()
-        return (min(min_max_values), max(min_max_values))
+        min_value = min(min_max_values)
+        max_value = max(min_max_values)
+        query_args = self._build_query_args({
+            'f': 'json',
+            'outFields': '*',
+            'outStatistics': json.dumps([
+                dict(statisticType='min', onStatisticField=oid_field_name, outStatisticFieldName='THE_MIN'),
+                dict(statisticType='max', onStatisticField=oid_field_name, outStatisticFieldName='THE_MAX'),
+            ], separators=(',', ':'))
+        })
+        query_args = self._build_query_args({
+            'where': '{} = {} OR {} = {}'.format(
+                oid_field_name,
+                min_value,
+                oid_field_name,
+                max_value
+            ),
+            'returnIdsOnly': 'true',
+            'f': 'json',
+        })
+        headers = self._build_headers()
+        url = self._build_url('/query')
+        response = self._request('GET', url, params=query_args, headers=headers)
+        oid_data = self._handle_esri_errors(response, "Could not check min/max values")
+        if not oid_data or not oid_data.get('objectIds') or min_value not in oid_data['objectIds'] or max_value not in oid_data['objectIds']:
+            raise EsriDownloadError('Server returned invalid min/max')
+        return (min_value, max_value)
 
     def _get_layer_oids(self):
         query_args = self._build_query_args({
