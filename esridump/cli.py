@@ -32,6 +32,8 @@ def _parse_args(args):
     parser.add_argument("outfile",
         type=argparse.FileType('w'),
         help="Output file name (use - for stdout)")
+    parser.add_argument("--proxy",
+        help="Proxy string to send requests through ie: https://example.com/proxy.ashx?<SERVER>")
     parser.add_argument("--jsonlines",
         action='store_true',
         default=False,
@@ -87,6 +89,7 @@ def main():
         extra_headers=headers,
         fields=requested_fields,
         request_geometry=args.request_geometry,
+        proxy=args.proxy,
         parent_logger=logger)
 
     if args.jsonlines:
