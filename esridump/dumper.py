@@ -11,7 +11,8 @@ class EsriDumper(object):
     def __init__(self, url, parent_logger=None,
         extra_query_args=None, extra_headers=None,
         timeout=None, fields=None, request_geometry=True,
-        outSR=None, proxy=None, oidField=None):
+        outSR=None, proxy=None, oidField=None, 
+        startWith=None, geometryPrecision=None):
         self._layer_url = url
         self._query_params = extra_query_args or {}
         self._headers = extra_headers or {}
@@ -21,6 +22,8 @@ class EsriDumper(object):
         self._request_geometry = request_geometry
         self._proxy = proxy or None
         self._oidField = oidField or None
+        self._startWith = startWith or 0
+        self._precision = geometryPrecision or 7
 
         if parent_logger:
             self._logger = parent_logger.getChild('esridump')
@@ -286,12 +289,12 @@ class EsriDumper(object):
                 self._logger.info("Source does not support pagination with fields specified, so querying for all fields.")
                 query_fields = None
 
-            for offset in range(0, row_count, page_size):
+            for offset in range(self._startWith, row_count, page_size):
                 query_args = self._build_query_args({
                     'resultOffset': offset,
                     'resultRecordCount': page_size,
                     'where': '1=1',
-                    'geometryPrecision': 7,
+                    'geometryPrecision': self._precision,
                     'returnGeometry': self._request_geometry,
                     'outSR': self._outSR,
                     'outFields': ','.join(query_fields or ['*']),
@@ -303,10 +306,11 @@ class EsriDumper(object):
             # If not, we can still use the `where` argument to paginate
 
             use_oids = True
-            if self._oidField:
-                oid_field_name = self._oidField
-            else:
-                oid_field_name = self._find_oid_field_name(metadata)
+            #if self._oidField:
+                #oid_field_name = self._oidField
+            #else:
+            oid_field_name = self._find_oid_field_name(metadata)
+        
             if not oid_field_name:
                 raise EsriDownloadError("Could not find object ID field name for deduplication")
 
@@ -325,7 +329,7 @@ class EsriDumper(object):
                                 oid_field_name,
                                 page_max,
                             ),
-                            'geometryPrecision': 7,
+                            'geometryPrecision': self._precision,
                             'returnGeometry': self._request_geometry,
                             'outSR': self._outSR,
                             'outFields': ','.join(query_fields or ['*']),
@@ -359,7 +363,7 @@ class EsriDumper(object):
                                 oid_field_name,
                                 page_max,
                             ),
-                            'geometryPrecision': 7,
+                            'geometryPrecision': self._precision,
                             'returnGeometry': self._request_geometry,
                             'outSR': self._outSR,
                             'outFields': ','.join(query_fields or ['*']),
