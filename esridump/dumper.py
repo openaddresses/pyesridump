@@ -158,7 +158,7 @@ class EsriDumper(object):
         oid_field_name = metadata.get('objectIdField')
         if not oid_field_name:
             for f in metadata['fields']:
-                if 'type' in f and f['type'] == 'esriFieldTypeOID':
+                if f.get('type') == 'esriFieldTypeOID':
                     oid_field_name = f['name']
                     break
 
@@ -306,9 +306,6 @@ class EsriDumper(object):
             # If not, we can still use the `where` argument to paginate
 
             use_oids = True
-            #if self._oidField:
-                #oid_field_name = self._oidField
-            #else:
             oid_field_name = self._find_oid_field_name(metadata)
         
             if not oid_field_name:
