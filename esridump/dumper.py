@@ -11,7 +11,7 @@ class EsriDumper(object):
     def __init__(self, url, parent_logger=None,
         extra_query_args=None, extra_headers=None,
         timeout=None, fields=None, request_geometry=True,
-        outSR=None, proxy=None, oidField=None, 
+        outSR=None, proxy=None, 
         startWith=None, geometryPrecision=None):
         self._layer_url = url
         self._query_params = extra_query_args or {}
@@ -21,7 +21,6 @@ class EsriDumper(object):
         self._outSR = outSR or '4326'
         self._request_geometry = request_geometry
         self._proxy = proxy or None
-        self._oidField = oidField or None
         self._startWith = startWith or 0
         self._precision = geometryPrecision or 7
 
