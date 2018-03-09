@@ -12,7 +12,7 @@ class EsriDumper(object):
         extra_query_args=None, extra_headers=None,
         timeout=None, fields=None, request_geometry=True,
         outSR=None, proxy=None, 
-        startWith=None, geometryPrecision=None):
+        start_with=None, geometry_precision=None):
         self._layer_url = url
         self._query_params = extra_query_args or {}
         self._headers = extra_headers or {}
@@ -21,8 +21,8 @@ class EsriDumper(object):
         self._outSR = outSR or '4326'
         self._request_geometry = request_geometry
         self._proxy = proxy or None
-        self._startWith = startWith or 0
-        self._precision = geometryPrecision or 7
+        self._startWith = start_with or 0
+        self._precision = geometry_precision or 7
 
         if parent_logger:
             self._logger = parent_logger.getChild('esridump')
