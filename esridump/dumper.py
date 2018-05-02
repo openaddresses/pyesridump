@@ -58,7 +58,7 @@ class EsriDumper(object):
 
         override_where = override_args.get('where')
         requested_where = query_args.get('where')
-        if override_where and requested_where != '1=1':
+        if override_where and requested_where and requested_where != '1=1':
             # AND the where args together if the user is trying to override
             # the where param and we're trying to get 'all the rows'
             override_args['where'] = '({}) AND ({})'.format(
