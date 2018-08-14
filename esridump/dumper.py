@@ -44,11 +44,13 @@ class EsriDumper(object):
             return requests.request(method, url, timeout=self._http_timeout, **kwargs)
         except (socket.timeout, requests.exceptions.ConnectionError):
             if retries < self._max_retries:
+                self._logger.warning("Retrying %s", url)
                 retries = retries + 1
-                kwargs['retries'] = retries + 1
+                kwargs['retries'] = retries
                 print(kwargs)
                 return self._request(method, url, **kwargs)
             else:
+                self._logger.warning("Max retries reached for %s", url)
                 raise
         except requests.exceptions.SSLError:
             self._logger.warning("Retrying %s without SSL verification", url)
@@ -341,7 +343,7 @@ class EsriDumper(object):
 
             use_oids = True
             oid_field_name = self._find_oid_field_name(metadata)
-        
+
             if not oid_field_name:
                 raise EsriDownloadError("Could not find object ID field name for deduplication")
 
