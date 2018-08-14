@@ -270,9 +270,54 @@ class TestEsriDownload(unittest.TestCase):
             body=socket.timeout(),
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = EsriDumper(self.fake_url, max_retries=0)
         with self.assertRaisesRegexp(EsriDownloadError, "Timeout when connecting to URL"):
             list(dump)
+
+    def test_object_id_retries(self):
+        self.add_fixture_response(
+            '.*/\?f=json.*',
+            'us-ca-carson/us-ca-carson-metadata.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-ca-carson/us-ca-carson-count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-ca-carson/us-ca-carson-ids-only.json',
+            method='GET',
+        )
+
+        # Should retry after a timeout
+        import socket
+        self.responses.add(
+            method='POST',
+            url=re.compile('.*query.*'),
+            body=socket.timeout(),
+        )
+
+        # Should retry after a ConnectionError
+        import requests
+        self.responses.add(
+            method='POST',
+            url=re.compile('.*query.*'),
+            body=requests.exceptions.ConnectionError(),
+        )
+
+        # Second request should pass
+        self.add_fixture_response(
+            '.*query.*',
+            'us-ca-carson/us-ca-carson-0.json',
+            method='POST',
+        )
+
+        dump = EsriDumper(self.fake_url)
+        data = list(dump)
+
+        self.assertEqual(6, len(data))
 
     def test_handles_value_error(self):
         self.add_fixture_response(

@@ -18,6 +18,7 @@ class EsriDumper(object):
         self._headers = extra_headers or {}
         self._http_timeout = timeout or 30
         self._fields = fields or None
+        self._max_retries = max_retries
         self._outSR = outSR or '4326'
         self._request_geometry = request_geometry
         self._proxy = proxy or None
@@ -31,7 +32,7 @@ class EsriDumper(object):
 
     def _request(self, method, url, **kwargs):
         try:
-
+            retries = kwargs.pop('retries', 0)
             if self._proxy:
                 url = self._proxy + url
 
@@ -41,6 +42,14 @@ class EsriDumper(object):
 
             self._logger.debug("%s %s, args %s", method, url, kwargs.get('params') or kwargs.get('data'))
             return requests.request(method, url, timeout=self._http_timeout, **kwargs)
+        except (socket.timeout, requests.exceptions.ConnectionError):
+            if retries < self._max_retries:
+                retries = retries + 1
+                kwargs['retries'] = retries + 1
+                print(kwargs)
+                return self._request(method, url, **kwargs)
+            else:
+                raise
         except requests.exceptions.SSLError:
             self._logger.warning("Retrying %s without SSL verification", url)
             return requests.request(method, url, timeout=self._http_timeout, verify=False, **kwargs)
