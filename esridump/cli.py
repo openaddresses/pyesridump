@@ -71,6 +71,10 @@ def _parse_args(args):
         type=int,
         default=30,
         help="HTTP timeout in seconds, default 30")
+    parser.add_argument("-r", "--retries",
+        type=int,
+        default=5,
+        help="Number of times to retry failed requests, default 5")
 
     return parser.parse_args(args)
 
