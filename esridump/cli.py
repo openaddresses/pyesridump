@@ -85,7 +85,8 @@ def main():
     params = _collect_params(args.params)
 
     logger = logging.getLogger('cli')
-    logger.setLevel(args.loglevel)
+    print("Loglevel",args.loglevel )
+    logger.setLevel(10) # args.loglevel
     handler = logging.StreamHandler()
     formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     handler.setFormatter(formatter)

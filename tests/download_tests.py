@@ -424,6 +424,7 @@ class TestEsriDownload(unittest.TestCase):
 
 
     def test_geo_queries_when_oid_enumeration_times_out(self):
+        print ("Test OID queries") 
         self.add_fixture_response(
             '.*/\?f=json.*',
             'us-il-cook/metadata.json',
@@ -434,6 +435,7 @@ class TestEsriDownload(unittest.TestCase):
             'us-il-cook/count-only.json',
             method='GET',
         )
+
         # Dang, there are too many OIDs to return. The request times out.
         import socket
         self.responses.add(
@@ -441,6 +443,8 @@ class TestEsriDownload(unittest.TestCase):
             url=re.compile('.*returnIdsOnly=true.*'),
             body=socket.timeout(),
         )
+
+        # We expect to see geometry queries now. 
         self.add_fixture_response(
             '.*geometry=.*',
             'us-il-cook/page-full.json',
