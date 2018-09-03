@@ -247,6 +247,33 @@ class TestEsriDownload(unittest.TestCase):
 
         self.assertEqual(43, len(data))
 
+    def test_proxy_requests(self):
+        self.add_fixture_response(
+            '.*/\?f=json.*',
+            'us-mo-columbia/us-mo-columbia-metadata.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-mo-columbia/us-mo-columbia-count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-mo-columbia/us-mo-columbia-ids-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*query.*',
+            'us-mo-columbia/us-mo-columbia-0.json',
+            method='POST',
+        )
+
+        dump = EsriDumper(self.fake_url, proxy='https://proxy?')
+        data = list(dump)
+
+        self.assertEqual(43, len(data))
+
     def test_handles_timeout_error(self):
         self.add_fixture_response(
             '.*/\?f=json.*',
