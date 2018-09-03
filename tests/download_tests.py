@@ -249,27 +249,27 @@ class TestEsriDownload(unittest.TestCase):
 
     def test_proxy_requests(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'http://proxy/\?http://example\.com\?f=json',
             'us-mo-columbia/us-mo-columbia-metadata.json',
             method='GET',
         )
         self.add_fixture_response(
-            '.*returnCountOnly=true.*',
+            r'http://proxy/\?http://example\.com/.*returnCountOnly=true.*',
             'us-mo-columbia/us-mo-columbia-count-only.json',
             method='GET',
         )
         self.add_fixture_response(
-            '.*returnIdsOnly=true.*',
+            r'http://proxy/\?http://example\.com/.*returnIdsOnly=true.*',
             'us-mo-columbia/us-mo-columbia-ids-only.json',
             method='GET',
         )
         self.add_fixture_response(
-            '.*query.*',
+            r'http://proxy/\?http://example\.com/.*query.*',
             'us-mo-columbia/us-mo-columbia-0.json',
             method='POST',
         )
 
-        dump = EsriDumper(self.fake_url, proxy='https://proxy?')
+        dump = EsriDumper(self.fake_url, proxy='http://proxy?')
         data = list(dump)
 
         self.assertEqual(43, len(data))
