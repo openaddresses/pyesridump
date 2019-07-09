@@ -71,6 +71,11 @@ def _parse_args(args):
         type=int,
         default=30,
         help="HTTP timeout in seconds, default 30")
+    parser.add_argument("--paginate-oid",
+        dest='paginate_oid',
+        action='store_true',
+        default=False,
+        help="Turn on paginate by OID regardless of normal pagination support")
 
     return parser.parse_args(args)
 
@@ -95,7 +100,8 @@ def main():
         request_geometry=args.request_geometry,
         proxy=args.proxy,
         timeout=args.timeout,
-        parent_logger=logger)
+        parent_logger=logger,
+        paginate_oid=args.paginate_oid)
 
     if args.jsonlines:
         for feature in dumper:

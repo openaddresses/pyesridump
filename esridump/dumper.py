@@ -12,7 +12,8 @@ class EsriDumper(object):
         extra_query_args=None, extra_headers=None,
         timeout=None, fields=None, request_geometry=True,
         outSR=None, proxy=None, 
-        start_with=None, geometry_precision=None):
+        start_with=None, geometry_precision=None,
+        paginate_oid=False):
         self._layer_url = url
         self._query_params = extra_query_args or {}
         self._headers = extra_headers or {}
@@ -23,6 +24,7 @@ class EsriDumper(object):
         self._proxy = proxy or None
         self._startWith = start_with or 0
         self._precision = geometry_precision or 7
+        self._paginate_oid = paginate_oid
 
         if parent_logger:
             self._logger = parent_logger.getChild('esridump')
@@ -303,7 +305,7 @@ class EsriDumper(object):
 
         page_args = []
 
-        if row_count is not None and (metadata.get('supportsPagination') or \
+        if not self._paginate_oid and row_count is not None and (metadata.get('supportsPagination') or \
                 (metadata.get('advancedQueryCapabilities') and metadata['advancedQueryCapabilities']['supportsPagination'])):
             # If the layer supports pagination, we can use resultOffset/resultRecordCount to paginate
 
