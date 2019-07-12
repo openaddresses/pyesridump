@@ -11,7 +11,7 @@ with open('LICENSE') as f:
 
 setup(
     name='esridump',
-    version='1.9.0',
+    version='1.9.1',
     description='Dump geodata from ESRI endpoints to GeoJSON',
     long_description=readme,
     long_description_content_type='text/markdown',
