@@ -19,7 +19,7 @@ class TestEsriDownload(unittest.TestCase):
         self.responses.reset()
 
     def add_fixture_response(self, url_re, file, method='POST', **kwargs):
-        with open(os.path.join('tests/fixtures', file), 'r', encoding='utf8') as f:
+        with open(os.path.join('tests/fixtures', file), 'rb') as f:
             self.responses.add(
                 method=method,
                 url=re.compile(url_re),
