@@ -14,6 +14,7 @@ setup(
     version='1.8.0',
     description='Dump geodata from ESRI endpoints to GeoJSON',
     long_description=readme,
+    long_description_content_type='text/markdown',
     author='Ian Dees',
     author_email='ian.dees@gmail.com',
     url='https://github.com/openaddresses/pyesridump',
@@ -21,7 +22,6 @@ setup(
     packages=find_packages(exclude=('tests', 'docs')),
     install_requires=[
         'requests',
-        'simplejson',
         'six',
     ],
     entry_points={

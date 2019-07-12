@@ -25,6 +25,7 @@ pip-log.txt
 # Unit test / coverage reports
 .coverage
 .tox
+.noseids
 nosetests.xml
 
 # Translations
@@ -34,3 +35,4 @@ nosetests.xml
 .mr.developer.cfg
 .project
 .pydevproject
+.vscode

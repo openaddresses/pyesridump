@@ -1,6 +1,6 @@
 import logging
 import requests
-import simplejson as json
+import json
 import socket
 from six.moves.urllib.parse import urlencode
 
@@ -11,7 +11,7 @@ class EsriDumper(object):
     def __init__(self, url, parent_logger=None,
         extra_query_args=None, extra_headers=None,
         timeout=None, fields=None, request_geometry=True,
-        outSR=None, proxy=None, 
+        outSR=None, proxy=None,
         start_with=None, geometry_precision=None,
         paginate_oid=False):
         self._layer_url = url
@@ -334,7 +334,7 @@ class EsriDumper(object):
 
             use_oids = True
             oid_field_name = self._find_oid_field_name(metadata)
-        
+
             if not oid_field_name:
                 raise EsriDownloadError("Could not find object ID field name for deduplication")
 

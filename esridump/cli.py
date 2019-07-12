@@ -2,7 +2,7 @@ import argparse
 import email.parser
 from six.moves import urllib
 import logging
-import simplejson as json
+import json
 import sys
 
 from esridump import EsriDumper
