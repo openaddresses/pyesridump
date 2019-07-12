@@ -8,7 +8,7 @@ with open('README.md') as f:
 
 setup(
     name='esridump',
-    version='1.9.2',
+    version='1.9.3',
     description='Dump geodata from ESRI endpoints to GeoJSON',
     long_description=readme,
     long_description_content_type='text/markdown',
