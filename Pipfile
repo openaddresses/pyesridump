@@ -8,9 +8,9 @@ requests = "*"
 
 [dev-packages]
 mock = "*"
-nose = "*"
 responses = "*"
-bumpversion = "*"
-"autopep8" = "*"
 cookies = "*"
+bumpversion = "*"
+nose = "*"
+"autopep8" = "*"
 pylint = "*"
