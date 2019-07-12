@@ -70,7 +70,7 @@ class TestEsriDumpCommandlineMain(unittest.TestCase):
 
     def tearDown(self):
         self.patcher.stop()
-        self.responses.stop()
+        self.responses.stop(allow_assert=False)
         self.responses.reset()
 
     def add_fixture_response(self, url_re, file, method='POST', **kwargs):
