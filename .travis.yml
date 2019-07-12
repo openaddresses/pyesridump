@@ -2,7 +2,7 @@ language: python
 python:
 - '2.7'
 - '3.7'
-install: pip install -r requirements.txt
+install: pipenv install --dev
 script: nosetests
 deploy:
   provider: pypi

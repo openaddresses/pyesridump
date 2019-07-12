@@ -76,12 +76,11 @@ git clone git@github.com:openaddresses/pyesridump.git # replace with your fork
 cd pyesridump
 ```
 
-Set up a [virtual environment](http://docs.python-guide.org/en/latest/dev/virtualenvs/) for development and install the dependencies for development:
+We use Pipenv to manage dependencies for development. Make sure you have [Pipenv installed](https://docs.pipenv.org/en/latest/install/) and then install the dependencies for development:
 
 ```
-virtualenv pyesridump
-source pyesridump/bin/activate
-pip install -e .
+pipenv install --dev
+pipenv shell
 ```
 
 Your changes to the code will be reflected when you run the `esri2geojson` command from within the virtual environment. You can also run (and add) tests to check that your changes didn't break anything:
