@@ -3,6 +3,7 @@ import requests
 import json
 import socket
 from six.moves.urllib.parse import urlencode
+import time
 
 from esridump import esri2geojson
 from esridump.errors import EsriDownloadError
@@ -13,7 +14,14 @@ class EsriDumper(object):
         timeout=None, fields=None, request_geometry=True,
         outSR=None, proxy=None,
         start_with=None, geometry_precision=None,
-        paginate_oid=False):
+        paginate_oid=False,
+        oid_min=None, oid_max=None,
+        max_retry=None, sleep_time=None):
+        '''
+            oid_min, oid_max are for spatial objectid on map server.
+            max_retry is for how many times to reconnect to a server before raise an exception, default value is 3
+            sleep_time is for delaying http requests to map server in seconds, default value is 40 
+        '''
         self._layer_url = url
         self._query_params = extra_query_args or {}
         self._headers = extra_headers or {}
@@ -25,6 +33,10 @@ class EsriDumper(object):
         self._startWith = start_with or 0
         self._precision = geometry_precision or 7
         self._paginate_oid = paginate_oid
+        self._oid_min = oid_min
+        self._oid_max = oid_max
+        self._max_retry = max_retry or 3 # a safety net in case the internet goes bad
+        self._sleep_time = sleep_time or 40
 
         if parent_logger:
             self._logger = parent_logger.getChild('esridump')
@@ -342,7 +354,12 @@ class EsriDumper(object):
                 # If the layer supports statistics, we can request maximum and minimum object ID
                 # to help build the pages
                 try:
-                    (oid_min, oid_max) = self._get_layer_min_max(oid_field_name)
+                    # If there's a supplied oid, we use it and skip calling get_layer_min_max 
+                    if self._oid_min != None and self._oid_max != None:
+                        oid_min = self._oid_min
+                        oid_max = self._oid_max
+                    else:
+                        (oid_min, oid_max) = self._get_layer_min_max(oid_field_name)
 
                     for page_min in range(oid_min - 1, oid_max, page_size):
                         page_max = min(page_min + page_size, oid_max)
@@ -416,21 +433,34 @@ class EsriDumper(object):
         query_url = self._build_url('/query')
         headers = self._build_headers()
         for query_args in page_args:
-            try:
-                response = self._request('POST', query_url, headers=headers, data=query_args)
-                data = self._handle_esri_errors(response, "Could not retrieve this chunk of objects")
-            except socket.timeout as e:
-                raise EsriDownloadError("Timeout when connecting to URL", e)
-            except ValueError as e:
-                raise EsriDownloadError("Could not parse JSON", e)
-            except Exception as e:
-                raise EsriDownloadError("Could not connect to URL", e)
+            tries = self._max_retry
+            for i in range(tries):
+                try:
+                    response = self._request('POST', query_url, headers=headers, data=query_args)
+                    data = self._handle_esri_errors(response, "Could not retrieve this chunk of objects")
+                except socket.timeout as e:
+                    if i < tries - 1: # i is zero indexed
+                        self._logger.debug("socket timeout, sleeping for 10 seconds before retrying.")
+                        time.sleep(self._sleep_time)
+                        continue
+                    else:
+                        raise EsriDownloadError("Timeout when connecting to URL", e)
+                except ValueError as e:
+                    raise EsriDownloadError("Could not parse JSON", e)
+                except Exception as e:
+                    if i < tries - 1: # i is zero indexed
+                        self._logger.debug("socket timeout, sleeping for 10 seconds before retrying.")
+                        time.sleep(30)
+                        continue
+                    else:
+                        raise EsriDownloadError("Could not connect to URL", e)
 
-            error = data.get('error')
-            if error:
-                raise EsriDownloadError("Problem querying ESRI dataset with args {}. Server said: {}".format(query_args, error['message']))
+                error = data.get('error')
+                if error:
+                    raise EsriDownloadError("Problem querying ESRI dataset with args {}. Server said: {}".format(query_args, error['message']))
 
-            features = data.get('features')
-
-            for feature in features:
-                yield esri2geojson(feature)
+                features = data.get('features')
+                self._logger.debug("got features")
+                for feature in features:
+                    yield esri2geojson(feature)
+                break
