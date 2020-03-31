@@ -293,7 +293,7 @@ class EsriDumper(object):
     def __iter__(self):
         query_fields = self._fields
         metadata = self.get_metadata()
-        page_size = min(1000, metadata.get('maxRecordCount', 500))
+        page_size = min(100, metadata.get('maxRecordCount', 500))
         geometry_type = metadata.get('geometryType')
 
         row_count = None
