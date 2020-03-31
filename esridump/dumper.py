@@ -16,11 +16,20 @@ class EsriDumper(object):
         start_with=None, geometry_precision=None,
         paginate_oid=False,
         oid_min=None, oid_max=None,
-        max_retry=None, sleep_time=None):
+        max_retry=None, sleep_time=None, page_size=None):
         '''
-            oid_min, oid_max are for spatial objectid on map server.
-            max_retry is for how many times to reconnect to a server before raise an exception, default value is 3
-            sleep_time is for delaying http requests to map server in seconds, default value is 40 
+            Additional Parameters
+            ---------------------
+            oid_min : int
+                Spatial objectid on map server.
+            oid_max : int
+                Spatial objectid on map server.
+            max_retry : int
+                How many times to reconnect to a server before raise an exception, default is 3
+            sleep_time : int
+                Delaying http requests to map server in seconds, default is 40 
+            page_size : int  
+                A pagination size, this help when we don't wanna make map server taking too much load, default is 1000.
         '''
         self._layer_url = url
         self._query_params = extra_query_args or {}
@@ -33,10 +42,11 @@ class EsriDumper(object):
         self._startWith = start_with or 0
         self._precision = geometry_precision or 7
         self._paginate_oid = paginate_oid
-        self._oid_min = oid_min
-        self._oid_max = oid_max
+        self._oid_min = oid_min or None
+        self._oid_max = oid_max or None
         self._max_retry = max_retry or 3 # a safety net in case the internet goes bad
         self._sleep_time = sleep_time or 40
+        self._page_size = page_size or 1000
 
         if parent_logger:
             self._logger = parent_logger.getChild('esridump')
@@ -305,7 +315,8 @@ class EsriDumper(object):
     def __iter__(self):
         query_fields = self._fields
         metadata = self.get_metadata()
-        page_size = min(100, metadata.get('maxRecordCount', 500))
+        min_page_size = self._page_size
+        page_size = min(min_page_size, metadata.get('maxRecordCount', 500))
         geometry_type = metadata.get('geometryType')
 
         row_count = None
