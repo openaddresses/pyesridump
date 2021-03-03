@@ -2,6 +2,7 @@ import logging
 import requests
 import json
 import socket
+import time
 from six.moves.urllib.parse import urlencode
 
 from esridump import esri2geojson
@@ -9,11 +10,12 @@ from esridump.errors import EsriDownloadError
 
 class EsriDumper(object):
     def __init__(self, url, parent_logger=None,
-        extra_query_args=None, extra_headers=None,
-        timeout=None, fields=None, request_geometry=True,
-        outSR=None, proxy=None,
-        start_with=None, geometry_precision=None,
-        paginate_oid=False):
+                 extra_query_args=None, extra_headers=None,
+                 timeout=None, fields=None, request_geometry=True,
+                 outSR=None, proxy=None,
+                 start_with=None, geometry_precision=None,
+                 paginate_oid=False,
+                 pause_seconds=10, requests_to_pause=5, num_of_retry=5):
         self._layer_url = url
         self._query_params = extra_query_args or {}
         self._headers = extra_headers or {}
@@ -25,6 +27,10 @@ class EsriDumper(object):
         self._startWith = start_with or 0
         self._precision = geometry_precision or 7
         self._paginate_oid = paginate_oid
+
+        self._pause_seconds = pause_seconds
+        self._requests_to_pause = requests_to_pause
+        self._num_of_retry = num_of_retry
 
         if parent_logger:
             self._logger = parent_logger.getChild('esridump')
@@ -415,16 +421,35 @@ class EsriDumper(object):
 
         query_url = self._build_url('/query')
         headers = self._build_headers()
-        for query_args in page_args:
-            try:
-                response = self._request('POST', query_url, headers=headers, data=query_args)
-                data = self._handle_esri_errors(response, "Could not retrieve this chunk of objects")
-            except socket.timeout as e:
-                raise EsriDownloadError("Timeout when connecting to URL", e)
-            except ValueError as e:
-                raise EsriDownloadError("Could not parse JSON", e)
-            except Exception as e:
-                raise EsriDownloadError("Could not connect to URL", e)
+        for query_index, query_args in enumerate(page_args, start=1):
+            download_exception = None
+            data = None
+
+            #  try to do a request "num_of_retry" to increase the probability of fetching data successfully
+            for retry in range(self._num_of_retry):
+                try:
+                    # pause every number of "requests_to_pause", that increase the probability for server response
+                    if query_index % self._requests_to_pause == 0:
+                        time.sleep(self._pause_seconds)
+                        self._logger.info("pause for {0} seconds", self._pause_seconds)
+                    response = self._request('POST', query_url, headers=headers, data=query_args)
+                    data = self._handle_esri_errors(response, "Could not retrieve this chunk of objects")
+                    # reset the exception state.
+                    download_exception = None
+                    # get out of retry loop, as the request succeeded
+                    break
+                except socket.timeout as e:
+                    raise EsriDownloadError("Timeout when connecting to URL", e)
+                except ValueError as e:
+                    raise EsriDownloadError("Could not parse JSON", e)
+                except Exception as e:
+                    download_exception = EsriDownloadError("Could not connect to URL", e)
+                    # increase the pause time every retry, to increase the probability of fetching data successfully
+                    time.sleep(self._pause_seconds * (retry + 1))
+                    self._logger.info("retry pause {0}".format(retry))
+
+            if download_exception:
+                raise download_exception
 
             error = data.get('error')
             if error:
