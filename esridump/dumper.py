@@ -421,7 +421,7 @@ class EsriDumper(object):
 
         query_url = self._build_url('/query')
         headers = self._build_headers()
-        for query_index, query_args in enumerate(page_args, 1):
+        for query_index, query_args in enumerate(page_args, start=1):
             download_exception = None
             data = None
 
