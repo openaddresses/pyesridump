@@ -432,7 +432,7 @@ class EsriDumper(object):
                     # pause every number of "requests_to_pause", that increase the probability for server response
                     if query_index % self._requests_to_pause == 0:
                         time.sleep(self._pause_seconds)
-                        self._logger.info("pause for {0} seconds".format(self._pause_seconds))
+                        self._logger.info("pause for %s seconds", self._pause_seconds)
                     response = self._request('POST', query_url, headers=headers, data=query_args)
                     data = self._handle_esri_errors(response, "Could not retrieve this chunk of objects")
                     # reset the exception state.
