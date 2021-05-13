@@ -328,6 +328,9 @@ class EsriDumper(object):
         ):
             feature = self._get_feature(feature.get('attributes', {}).get(oid_field_name))
 
+            if not feature.get('geometry'):
+                self._has_individual_geom = False
+
             return esri2geojson(feature, 'epsg:{}'.format(sr))
         else:
             return esri2geojson(feature)
