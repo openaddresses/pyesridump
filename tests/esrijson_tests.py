@@ -6,8 +6,8 @@ class TestEsriJsonToGeoJson(unittest.TestCase):
     def setUp(self):
         self.maxDiff = None
 
-    def assertEsriJsonBecomesGeoJson(self, esrijson, geojson):
-        out_json = esri2geojson(esrijson)
+    def assertEsriJsonBecomesGeoJson(self, esrijson, geojson, srid = 'epsg:4326'):
+        out_json = esri2geojson(esrijson, srid)
         self.assertDictEqual(out_json, geojson)
 
 
@@ -92,6 +92,44 @@ class TestGeoJsonPointConversion(TestEsriJsonToGeoJson):
                 "properties": None,
                 "geometry": None
             }
+        )
+
+    def test_point_reprojection(self):
+        self.assertEsriJsonBecomesGeoJson(
+            {
+                "geometry": {
+                    "x": 3416610.3170062304,
+                    "y": 655149.2875857949
+                },
+                "attributes": None
+            },
+            {
+                "type": "Feature",
+                "properties": None,
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": (-90.90308260806273, 30.300826529402762),
+                }
+            }, 'epsg:3452'
+        )
+
+        self.assertEsriJsonBecomesGeoJson(
+            {
+                "geometry": {
+                    "points": [
+                        [3416610.3170062304, 655149.2875857949],
+                    ]
+                },
+                "attributes": None
+            },
+            {
+                "type": "Feature",
+                "properties": None,
+                "geometry": {
+                    "type": "Point",
+                    "coordinates": (-90.90308260806273, 30.300826529402762),
+                }
+            }, 'epsg:3452'
         )
 
 
@@ -206,6 +244,41 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
                 }
             }
         )
+
+    def test_polygon_reprojection(self):
+        self.assertEsriJsonBecomesGeoJson(
+            {
+                "geometry": {
+                    "rings" : [
+                        [
+                            [-8633039.980494235,4613512.642650193],
+                            [-8618265.787702214,4613512.642650193],
+                            [-8618265.787702214,4628161.630418547],
+                            [-8633039.980494235,4628161.630418547],
+                            [-8633039.980494235,4613512.642650193]
+                        ]
+                    ],
+                }
+            },
+
+            {
+                "type": "Feature",
+                "properties": None,
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": (
+                        (
+                            (-77.55191762892865, 38.240897327459116),
+                            (-77.41919879697265, 38.240897327459116),
+                            (-77.41919879697265, 38.3441798534297),
+                            (-77.55191762892865, 38.3441798534297),
+                            (-77.55191762892865, 38.240897327459116),
+                        ),
+                    ),
+                }
+            }, 'epsg:3857'
+        )
+
 
     def test_polygon_with_hole(self):
         self.assertEsriJsonBecomesGeoJson(

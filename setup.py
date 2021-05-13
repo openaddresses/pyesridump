@@ -19,6 +19,8 @@ setup(
     packages=find_packages(exclude=('tests', 'docs')),
     install_requires=[
         'requests',
+        'pyproj == 3.0',
+        'shapely == 1.7',
         'six',
     ],
     entry_points={

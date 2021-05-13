@@ -1,17 +1,32 @@
 from itertools import tee
+from functools import partial
+from shapely.geometry import shape, mapping
+from shapely.ops import transform
+import pyproj
 
-def esri2geojson(esrijson_feature):
+def esri2geojson(esrijson_feature, srid = 'epsg:4326'):
     response = dict(type="Feature", geometry=None, properties=None)
 
     geojson_geometry = convert_esri_geometry(esrijson_feature.get('geometry'))
     if geojson_geometry:
+        if srid != 'epsg:4326':
+            project = partial(
+                pyproj.transform,
+                pyproj.Proj(srid),
+                pyproj.Proj('epsg:4326'),
+            )
+
+            geojson_geometry = mapping(transform(lambda x, y: (y, x), transform(project, shape(geojson_geometry))))
+
         response['geometry'] = geojson_geometry
+
 
     esri_attributes = esrijson_feature.get('attributes')
     if esri_attributes:
         response['properties'] = esri_attributes
 
     return response
+
 
 def convert_esri_geometry(esri_geometry):
     if esri_geometry is None:

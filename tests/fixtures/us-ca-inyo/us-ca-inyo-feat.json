@@ -1,0 +1,28 @@
+{
+    "feature": {
+        "attributes": {
+            "OBJECTID": 1,
+            "SITENUMBER": "555",
+            "SITEFRAC": " ",
+            "SITEPREF": "E",
+            "SITESTREET": "CARSON ST",
+            "SITEUNIT": "122",
+            "SITECITY": "CARSON, CA",
+            "SITEZIP": "90745",
+            "STREETNAME": "CARSON",
+            "STREETTYPE": "ST",
+            "TYPE": "R",
+            "ADDRESS": "555 E CARSON ST 122",
+            "VACANT": " ",
+            "RES_BUS": "RES",
+            "Field_Chec": " ",
+            "Need_Check": "NO",
+            "Comments": " ",
+            "Edit_Date": null
+        },
+        "geometry": {
+            "x": -118.26711788300821,
+            "y": 33.832217189774546
+        }
+    }
+}
