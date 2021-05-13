@@ -47,7 +47,7 @@ class TestEsriDumpCommandlineMain(unittest.TestCase):
         )
         self.add_fixture_response(
             '.*query.*',
-            'us-ca-carson/us-ca-carson-0.json',
+            'us-ca-carson/us-ca-carson-query.json',
             method='POST',
         )
 

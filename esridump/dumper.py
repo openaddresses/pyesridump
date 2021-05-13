@@ -321,7 +321,7 @@ class EsriDumper(object):
         sr = self._metadata.get('sourceSpatialReference', {}).get('latestWkid')
 
         if (
-            not feature.get('geometry')
+            sr and not feature.get('geometry')
             and self._request_geometry
             and self._has_individual_geom
             and feature.get('attributes', {}).get(oid_field_name)
