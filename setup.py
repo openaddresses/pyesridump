@@ -20,6 +20,7 @@ setup(
     install_requires=[
         'requests',
         'pyproj',
+        'shapely',
         'six',
     ],
     entry_points={

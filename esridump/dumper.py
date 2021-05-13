@@ -318,6 +318,8 @@ class EsriDumper(object):
 
     def _esri2geojson(self, feature):
         oid_field_name = self._find_oid_field_name(self._metadata)
+        sr = self._metadata.get('sourceSpatialReference', {}).get('latestWkid')
+
         if (
             not feature.get('geometry')
             and self._request_geometry
@@ -326,7 +328,7 @@ class EsriDumper(object):
         ):
             feature = self._get_feature(feature.get('attributes', {}).get(oid_field_name))
 
-            return
+            return esri2geojson(feature, 'epsg:{}'.format(sr))
         else:
             return esri2geojson(feature)
 
