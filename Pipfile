@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 requests = "*"
+pyproj = "3.0"
 
 [dev-packages]
 mock = "*"

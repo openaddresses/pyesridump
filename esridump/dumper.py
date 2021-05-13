@@ -28,6 +28,11 @@ class EsriDumper(object):
         self._precision = geometry_precision or 7
         self._paginate_oid = paginate_oid
 
+        # Used as a fallback if the /query endpoint doesn't return geometries
+        # Will attempt a single /<feature-id> call, if it returns a geometry it
+        # will continue querying individual features, if not, set to False
+        self._has_individual_geom = True
+
         self._pause_seconds = pause_seconds
         self._requests_to_pause = requests_to_pause
         self._num_of_retry = num_of_retry
@@ -36,6 +41,9 @@ class EsriDumper(object):
             self._logger = parent_logger.getChild('esridump')
         else:
             self._logger = logging.getLogger('esridump')
+
+        self._metadata = self.get_metadata()
+
 
     def _request(self, method, url, **kwargs):
         try:
@@ -219,6 +227,17 @@ class EsriDumper(object):
 
         return (int(min_value), int(max_value))
 
+    def _get_feature(self, fid):
+        query_args = self._build_query_args({
+            'f': 'json',
+        })
+        url = self._build_url('/{}'.format(fid))
+        headers = self._build_headers()
+        response = self._request('GET', url, params=query_args, headers=headers)
+        fdata = self._handle_esri_errors(response, "Could not retrieve Feature")
+
+        return fdata.get('feature')
+
     def _get_layer_oids(self):
         query_args = self._build_query_args({
             'where': '1=1',  # So we get everything
@@ -297,11 +316,25 @@ class EsriDumper(object):
             for feature in features:
                 yield feature
 
+    def _esri2geojson(self, feature):
+        oid_field_name = self._find_oid_field_name(self._metadata)
+        if (
+            not feature.get('geometry')
+            and self._request_geometry
+            and self._has_individual_geom
+            and feature.get('attributes', {}).get(oid_field_name)
+        ):
+            feature = self._get_feature(feature.get('attributes', {}).get(oid_field_name))
+
+            return
+        else:
+            return esri2geojson(feature)
+
+
     def __iter__(self):
         query_fields = self._fields
-        metadata = self.get_metadata()
-        page_size = min(1000, metadata.get('maxRecordCount', 500))
-        geometry_type = metadata.get('geometryType')
+        page_size = min(1000, self._metadata.get('maxRecordCount', 500))
+        geometry_type = self._metadata.get('geometryType')
 
         row_count = None
 
@@ -312,8 +345,8 @@ class EsriDumper(object):
 
         page_args = []
 
-        if not self._paginate_oid and row_count is not None and (metadata.get('supportsPagination') or \
-                (metadata.get('advancedQueryCapabilities') and metadata['advancedQueryCapabilities']['supportsPagination'])):
+        if not self._paginate_oid and row_count is not None and (self._metadata.get('supportsPagination') or \
+                (self._metadata.get('advancedQueryCapabilities') and self._metadata['advancedQueryCapabilities']['supportsPagination'])):
             # If the layer supports pagination, we can use resultOffset/resultRecordCount to paginate
 
             # There's a bug where some servers won't handle these queries in combination with a list of
@@ -340,12 +373,12 @@ class EsriDumper(object):
             # If not, we can still use the `where` argument to paginate
 
             use_oids = True
-            oid_field_name = self._find_oid_field_name(metadata)
+            oid_field_name = self._find_oid_field_name(self._metadata)
 
             if not oid_field_name:
                 raise EsriDownloadError("Could not find object ID field name for deduplication")
 
-            if metadata.get('supportsStatistics'):
+            if self._metadata.get('supportsStatistics'):
                 # If the layer supports statistics, we can request maximum and minimum object ID
                 # to help build the pages
                 try:
@@ -405,7 +438,7 @@ class EsriDumper(object):
                 except EsriDownloadError:
                     self._logger.info("Falling back to geo queries")
                     # Use geospatial queries when none of the ID-based methods will work
-                    bounds = metadata['extent']
+                    bounds = self._metadata['extent']
                     saved = set()
 
                     for feature in self._scrape_an_envelope(bounds, self._outSR, page_size):
@@ -414,7 +447,7 @@ class EsriDumper(object):
                         if oid in saved:
                             continue
 
-                        yield esri2geojson(feature)
+                        yield self._esri2geojson(feature)
 
                         saved.add(oid)
 
@@ -459,4 +492,4 @@ class EsriDumper(object):
             features = data.get('features')
 
             for feature in features:
-                yield esri2geojson(feature)
+                yield self._esri2geojson(feature)

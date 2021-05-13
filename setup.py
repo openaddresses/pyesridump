@@ -19,6 +19,7 @@ setup(
     packages=find_packages(exclude=('tests', 'docs')),
     install_requires=[
         'requests',
+        'pyproj',
         'six',
     ],
     entry_points={

@@ -1,6 +1,7 @@
 from itertools import tee
+import pyproj
 
-def esri2geojson(esrijson_feature):
+def esri2geojson(esrijson_feature, srid = 4326):
     response = dict(type="Feature", geometry=None, properties=None)
 
     geojson_geometry = convert_esri_geometry(esrijson_feature.get('geometry'))
