@@ -55,6 +55,41 @@ class TestEsriDownload(unittest.TestCase):
 
         self.assertEqual(6, len(data))
 
+    def test_object_id_enumeration_missing_geom(self):
+        self.add_fixture_response(
+            '.*/\?f=json.*',
+            'us-ca-inyo/us-ca-inyo-metadata.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-ca-inyo/us-ca-inyo-count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-ca-inyo/us-ca-inyo-ids-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*query.*',
+            'us-ca-inyo/us-ca-inyo-query.json',
+            method='POST',
+        )
+
+        self.add_fixture_response(
+            '.*/[0-9]+.*',
+            'us-ca-inyo/us-ca-inyo-feat.json',
+            method='GET',
+        )
+
+        dump = EsriDumper(self.fake_url)
+
+        data = list(dump)
+
+        self.assertEqual(6, len(data))
+
+"""
     def test_statistics_pagination(self):
         self.add_fixture_response(
             '.*/\?f=json.*',
@@ -403,3 +438,4 @@ class TestEsriDownload(unittest.TestCase):
         # bounding boxes.
 
         self.assertEqual(2, len(data))
+"""

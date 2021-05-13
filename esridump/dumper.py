@@ -320,6 +320,9 @@ class EsriDumper(object):
         oid_field_name = self._find_oid_field_name(self._metadata)
         sr = self._metadata.get('sourceSpatialReference', {}).get('latestWkid')
 
+        if not sr:
+            sr = self._metadata.get('sourceSpatialReference', {}).get('wkid')
+
         if (
             sr and not feature.get('geometry')
             and self._request_geometry

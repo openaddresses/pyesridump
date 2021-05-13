@@ -1,0 +1,270 @@
+{
+    "displayFieldName": "STREETNAME",
+    "fieldAliases": {
+        "OBJECTID": "OBJECTID",
+        "SITENUMBER": "SITENUMBER",
+        "SITEFRAC": "SITEFRAC",
+        "SITEPREF": "SITEPREF",
+        "SITESTREET": "SITESTREET",
+        "SITEUNIT": "SITEUNIT",
+        "SITECITY": "SITECITY",
+        "SITEZIP": "SITEZIP",
+        "STREETNAME": "STREETNAME",
+        "STREETTYPE": "STREETTYPE",
+        "TYPE": "TYPE",
+        "ADDRESS": "ADDRESS",
+        "VACANT": "VACANT",
+        "RES_BUS": "RES_BUS",
+        "Field_Chec": "Field_Chec",
+        "Need_Check": "Need_Check",
+        "Comments": "Comments",
+        "Edit_Date": "Edit_Date"
+    },
+    "geometryType": "esriGeometryPoint",
+    "spatialReference": {
+        "wkid": 4326
+    },
+    "fields": [
+        {
+            "name": "OBJECTID",
+            "type": "esriFieldTypeOID",
+            "alias": "OBJECTID"
+        },
+        {
+            "name": "SITENUMBER",
+            "type": "esriFieldTypeString",
+            "alias": "SITENUMBER",
+            "length": 13
+        },
+        {
+            "name": "SITEFRAC",
+            "type": "esriFieldTypeString",
+            "alias": "SITEFRAC",
+            "length": 10
+        },
+        {
+            "name": "SITEPREF",
+            "type": "esriFieldTypeString",
+            "alias": "SITEPREF",
+            "length": 4
+        },
+        {
+            "name": "SITESTREET",
+            "type": "esriFieldTypeString",
+            "alias": "SITESTREET",
+            "length": 25
+        },
+        {
+            "name": "SITEUNIT",
+            "type": "esriFieldTypeString",
+            "alias": "SITEUNIT",
+            "length": 8
+        },
+        {
+            "name": "SITECITY",
+            "type": "esriFieldTypeString",
+            "alias": "SITECITY",
+            "length": 14
+        },
+        {
+            "name": "SITEZIP",
+            "type": "esriFieldTypeString",
+            "alias": "SITEZIP",
+            "length": 10
+        },
+        {
+            "name": "STREETNAME",
+            "type": "esriFieldTypeString",
+            "alias": "STREETNAME",
+            "length": 70
+        },
+        {
+            "name": "STREETTYPE",
+            "type": "esriFieldTypeString",
+            "alias": "STREETTYPE",
+            "length": 70
+        },
+        {
+            "name": "TYPE",
+            "type": "esriFieldTypeString",
+            "alias": "TYPE",
+            "length": 5
+        },
+        {
+            "name": "ADDRESS",
+            "type": "esriFieldTypeString",
+            "alias": "ADDRESS",
+            "length": 50
+        },
+        {
+            "name": "VACANT",
+            "type": "esriFieldTypeString",
+            "alias": "VACANT",
+            "length": 5
+        },
+        {
+            "name": "RES_BUS",
+            "type": "esriFieldTypeString",
+            "alias": "RES_BUS",
+            "length": 10
+        },
+        {
+            "name": "Field_Chec",
+            "type": "esriFieldTypeString",
+            "alias": "Field_Chec",
+            "length": 25
+        },
+        {
+            "name": "Need_Check",
+            "type": "esriFieldTypeString",
+            "alias": "Need_Check",
+            "length": 10
+        },
+        {
+            "name": "Comments",
+            "type": "esriFieldTypeString",
+            "alias": "Comments",
+            "length": 50
+        },
+        {
+            "name": "Edit_Date",
+            "type": "esriFieldTypeDate",
+            "alias": "Edit_Date",
+            "length": 8
+        }
+    ],
+    "features": [
+        {
+            "attributes": {
+                "OBJECTID": 1,
+                "SITENUMBER": "555",
+                "SITEFRAC": " ",
+                "SITEPREF": "E",
+                "SITESTREET": "CARSON ST",
+                "SITEUNIT": "122",
+                "SITECITY": "CARSON, CA",
+                "SITEZIP": "90745",
+                "STREETNAME": "CARSON",
+                "STREETTYPE": "ST",
+                "TYPE": "R",
+                "ADDRESS": "555 E CARSON ST 122",
+                "VACANT": " ",
+                "RES_BUS": "RES",
+                "Field_Chec": " ",
+                "Need_Check": "NO",
+                "Comments": " ",
+                "Edit_Date": null
+            }
+        },
+        {
+            "attributes": {
+                "OBJECTID": 2,
+                "SITENUMBER": "555",
+                "SITEFRAC": " ",
+                "SITEPREF": "E",
+                "SITESTREET": "CARSON ST",
+                "SITEUNIT": "123",
+                "SITECITY": "CARSON, CA",
+                "SITEZIP": "90745",
+                "STREETNAME": "CARSON",
+                "STREETTYPE": "ST",
+                "TYPE": "R",
+                "ADDRESS": "555 E CARSON ST 123",
+                "VACANT": " ",
+                "RES_BUS": "RES",
+                "Field_Chec": " ",
+                "Need_Check": "NO",
+                "Comments": " ",
+                "Edit_Date": null
+            }
+        },
+        {
+            "attributes": {
+                "OBJECTID": 3,
+                "SITENUMBER": "555",
+                "SITEFRAC": " ",
+                "SITEPREF": "E",
+                "SITESTREET": "CARSON ST",
+                "SITEUNIT": "124",
+                "SITECITY": "CARSON, CA",
+                "SITEZIP": "90745",
+                "STREETNAME": "CARSON",
+                "STREETTYPE": "ST",
+                "TYPE": "R",
+                "ADDRESS": "555 E CARSON ST 124",
+                "VACANT": " ",
+                "RES_BUS": "RES",
+                "Field_Chec": " ",
+                "Need_Check": "NO",
+                "Comments": " ",
+                "Edit_Date": null
+            }
+        },
+        {
+            "attributes": {
+                "OBJECTID": 1,
+                "SITENUMBER": "555",
+                "SITEFRAC": " ",
+                "SITEPREF": "E",
+                "SITESTREET": "CARSON ST",
+                "SITEUNIT": "120",
+                "SITECITY": "CARSON, CA",
+                "SITEZIP": "90745",
+                "STREETNAME": "CARSON",
+                "STREETTYPE": "ST",
+                "TYPE": "R",
+                "ADDRESS": "555 E CARSON ST 120",
+                "VACANT": " ",
+                "RES_BUS": "RES",
+                "Field_Chec": " ",
+                "Need_Check": "NO",
+                "Comments": " ",
+                "Edit_Date": null
+            }
+        },
+        {
+            "attributes": {
+                "OBJECTID": 4,
+                "SITENUMBER": "555",
+                "SITEFRAC": " ",
+                "SITEPREF": "E",
+                "SITESTREET": "CARSON ST",
+                "SITEUNIT": "80",
+                "SITECITY": "CARSON, CA",
+                "SITEZIP": "90745",
+                "STREETNAME": "CARSON",
+                "STREETTYPE": "ST",
+                "TYPE": "R",
+                "ADDRESS": "555 E CARSON ST 80",
+                "VACANT": " ",
+                "RES_BUS": "RES",
+                "Field_Chec": " ",
+                "Need_Check": "NO",
+                "Comments": " ",
+                "Edit_Date": null
+            }
+        },
+        {
+            "attributes": {
+                "OBJECTID": 5,
+                "SITENUMBER": "555",
+                "SITEFRAC": " ",
+                "SITEPREF": "E",
+                "SITESTREET": "CARSON ST",
+                "SITEUNIT": "81",
+                "SITECITY": "CARSON, CA",
+                "SITEZIP": "90745",
+                "STREETNAME": "CARSON",
+                "STREETTYPE": "ST",
+                "TYPE": "R",
+                "ADDRESS": "555 E CARSON ST 81",
+                "VACANT": " ",
+                "RES_BUS": "RES",
+                "Field_Chec": " ",
+                "Need_Check": "NO",
+                "Comments": " ",
+                "Edit_Date": null
+            }
+        }
+    ]
+}
