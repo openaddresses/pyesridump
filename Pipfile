@@ -7,6 +7,7 @@ name = "pypi"
 requests = "*"
 pyproj = "3.0"
 shapely = "1.7"
+esridump = {editable = true, path = "."}
 
 [dev-packages]
 mock = "*"
