@@ -1,8 +1,7 @@
 language: python
 dist: xenial
 python:
-- '2.7'
-- '3.7'
+- '3.8'
 install:
   - pip install -U pip twine wheel setuptools pipenv
   - pipenv install --dev
