@@ -11,21 +11,21 @@ from esridump.errors import EsriDownloadError
 class EsriDumper(object):
     def __init__(self, url, parent_logger=None,
                  extra_query_args=None, extra_headers=None,
-                 timeout=None, fields=None, request_geometry=True,
-                 outSR=None, proxy=None,
-                 start_with=None, geometry_precision=None,
+                 timeout=30, fields=None, request_geometry=True,
+                 outSR='4326', proxy=None,
+                 start_with=0, geometry_precision=7,
                  paginate_oid=False,
                  pause_seconds=10, requests_to_pause=5, num_of_retry=5):
         self._layer_url = url
         self._query_params = extra_query_args or {}
         self._headers = extra_headers or {}
-        self._http_timeout = timeout or 30
+        self._http_timeout = timeout
         self._fields = fields or None
-        self._outSR = outSR or '4326'
+        self._outSR = outSR
         self._request_geometry = request_geometry
         self._proxy = proxy or None
-        self._startWith = start_with or 0
-        self._precision = geometry_precision or 7
+        self._startWith = start_with
+        self._precision = geometry_precision
         self._paginate_oid = paginate_oid
 
         self._pause_seconds = pause_seconds
