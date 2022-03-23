@@ -1,1 +1,0 @@
-{"displayFieldName":"","fieldAliases":{"THE_MIN":"THE_MIN","THE_MAX":"THE_MAX"},"fields":[{"name":"THE_MIN","type":"esriFieldTypeDouble","alias":"THE_MIN"},{"name":"THE_MAX","type":"esriFieldTypeDouble","alias":"THE_MAX"}],"features":[{"attributes":{"THE_MIN":null,"THE_MAX":null}}]}
