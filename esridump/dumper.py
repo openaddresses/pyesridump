@@ -157,7 +157,7 @@ class EsriDumper(object):
         response = self._request('GET', url, params=query_args, headers=headers)
         count_json = self._handle_esri_errors(response, "Could not retrieve row count")
         count = count_json.get('count')
-        if not count:
+        if count is None:
             raise EsriDownloadError("Server doesn't support returnCountOnly")
         return count_json['count']
 
@@ -309,6 +309,11 @@ class EsriDumper(object):
             row_count = self.get_feature_count()
         except EsriDownloadError:
             self._logger.info("Source does not support feature count")
+
+        # If there are no records matching the query, short circuit and return an empty generator.
+        if row_count == 0:
+            return
+            yield
 
         page_args = []
 

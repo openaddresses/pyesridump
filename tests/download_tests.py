@@ -403,3 +403,21 @@ class TestEsriDownload(unittest.TestCase):
         # bounding boxes.
 
         self.assertEqual(2, len(data))
+
+    def test_empty_result_set_short_circuits(self):
+        self.add_fixture_response(
+            '.*/\?f=json.*',
+            'us-il-chicago/metadata.json',
+            method='GET',
+        )
+
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-il-chicago/count-only.json',
+            method='GET',
+        )
+
+        dump = EsriDumper(self.fake_url)
+        data = list(dump)
+
+        self.assertEqual(0, len(data))
