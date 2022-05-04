@@ -69,6 +69,9 @@ def convert_esri_polygon(esri_geometry):
     rings = esri_geometry.get('rings')
 
     def ensure_closed_ring(ring):
+        if len(ring) <= 0:
+            return ring
+
         first = ring[0]
         last = ring[-1]
 
