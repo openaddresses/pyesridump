@@ -94,6 +94,36 @@ class TestGeoJsonPointConversion(TestEsriJsonToGeoJson):
             }
         )
 
+    def test_nan_point(self):
+        self.assertEsriJsonBecomesGeoJson(
+            {
+                "geometry": {
+                    "x": float('nan'),
+                    "y": float('nan'),
+                },
+            },
+
+            {
+                "type": "Feature",
+                "properties": None,
+                "geometry": None
+            }
+        )
+
+        self.assertEsriJsonBecomesGeoJson(
+            {
+                "geometry": {
+                    "points": [float('nan'), float('nan')]
+                },
+            },
+
+            {
+                "type": "Feature",
+                "properties": None,
+                "geometry": None
+            }
+        )
+
 
 class TestGeoJsonLinestringConversion(TestEsriJsonToGeoJson):
     def test_linestring(self):
