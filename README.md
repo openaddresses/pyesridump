@@ -1,5 +1,4 @@
-esri-dump
-=========
+# esri-dump
 
 Scrapes an Esri REST endpoint and writes a GeoJSON file.
 
