@@ -30,7 +30,7 @@ class TestEsriDownload(unittest.TestCase):
 
     def test_object_id_enumeration(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-ca-carson/us-ca-carson-metadata.json',
             method='GET',
         )
@@ -57,7 +57,7 @@ class TestEsriDownload(unittest.TestCase):
 
     def test_statistics_pagination(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-ms-madison/us-ms-madison-metadata.json',
             method='GET',
         )
@@ -94,7 +94,7 @@ class TestEsriDownload(unittest.TestCase):
 
     def test_advanced_query_pagination(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-esri-test/us-esri-test-metadata.json',
             method='GET',
         )
@@ -116,7 +116,7 @@ class TestEsriDownload(unittest.TestCase):
 
     def test_advanced_query_pagination_incorrect_outfield_name(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-ca-tuolumne/us-ca-tuolumne-metadata.json',
             method='GET',
         )
@@ -153,7 +153,7 @@ class TestEsriDownload(unittest.TestCase):
 
     def test_oid_enumeration_when_wrong_min_max_is_given(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-fl-polk/us-fl-polk-metadata.json',
             method='GET',
         )
@@ -190,7 +190,7 @@ class TestEsriDownload(unittest.TestCase):
 
     def test_oid_enumeration_when_statistics_doesnt_work(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-mi-kent/us-mi-kent-metadata.json',
             method='GET',
         )
@@ -222,7 +222,7 @@ class TestEsriDownload(unittest.TestCase):
 
     def test_coerces_floats_to_integer(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-mo-columbia/us-mo-columbia-metadata.json',
             method='GET',
         )
@@ -276,7 +276,7 @@ class TestEsriDownload(unittest.TestCase):
 
     def test_handles_timeout_error(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-mo-columbia/us-mo-columbia-metadata.json',
             method='GET',
         )
@@ -298,12 +298,12 @@ class TestEsriDownload(unittest.TestCase):
         )
 
         dump = EsriDumper(self.fake_url)
-        with self.assertRaisesRegexp(EsriDownloadError, "Timeout when connecting to URL"):
+        with self.assertRaisesRegex(EsriDownloadError, "Timeout when connecting to URL"):
             list(dump)
 
     def test_handles_value_error(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-mo-columbia/us-mo-columbia-metadata.json',
             method='GET',
         )
@@ -324,12 +324,12 @@ class TestEsriDownload(unittest.TestCase):
         )
 
         dump = EsriDumper(self.fake_url)
-        with self.assertRaisesRegexp(EsriDownloadError, "Could not parse JSON"):
+        with self.assertRaisesRegex(EsriDownloadError, "Could not parse JSON"):
             list(dump)
 
     def test_handles_exception(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-mo-columbia/us-mo-columbia-metadata.json',
             method='GET',
         )
@@ -349,13 +349,13 @@ class TestEsriDownload(unittest.TestCase):
             body=Exception(),
         )
 
-        dump = EsriDumper(self.fake_url)
-        with self.assertRaisesRegexp(EsriDownloadError, "Could not connect to URL"):
+        dump = EsriDumper(self.fake_url, pause_seconds=0.01)
+        with self.assertRaisesRegex(EsriDownloadError, "Could not connect to URL"):
             list(dump)
 
     def test_geo_queries_when_oid_enumeration_doesnt_work(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-il-cook/metadata.json',
             method='GET',
         )
@@ -406,7 +406,7 @@ class TestEsriDownload(unittest.TestCase):
 
     def test_empty_result_set_short_circuits(self):
         self.add_fixture_response(
-            '.*/\?f=json.*',
+            r'.*/\?f=json.*',
             'us-il-chicago/metadata.json',
             method='GET',
         )
