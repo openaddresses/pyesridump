@@ -328,6 +328,42 @@ class TestGeoJsonPolygonConversion(TestEsriJsonToGeoJson):
             }
         )
 
+    def test_polygon_with_empty_geometry(self):
+        # Esri JSON allows empty rings with 0 points. GeoJSON doesn't.
+        self.assertEsriJsonBecomesGeoJson(
+            {
+                "geometry": {
+                    "rings": [
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1]
+                        ],
+                        [
+                        ]
+                    ],
+                }
+            },
+
+            {
+                "type": "Feature",
+                "properties": None,
+                "geometry": {
+                    "type": "Polygon",
+                    "coordinates": [
+                        [
+                            [1,1],
+                            [1,4],
+                            [4,4],
+                            [4,1],
+                            [1,1]
+                        ]
+                    ],
+                }
+            }
+        )
+
     def test_ring_is_clockwise(self):
         from esridump.esri2geojson import ring_is_clockwise
         self.assertFalse(ring_is_clockwise(
