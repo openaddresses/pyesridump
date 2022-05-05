@@ -19,6 +19,10 @@ Deploying
     git push origin master
     ```
 
-3. Pushing the tag will trigger a Travis CI process that will send the tag to pypi.
+3. Pushing the tag will trigger a GitHub Action process that will send the tag to pypi.
+
+    ```
+    git push --tags
+    ```
 
 4. Done!
