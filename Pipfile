@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 requests = "*"
+esridump = {editable = true, path = "."}
 
 [dev-packages]
 mock = "*"
