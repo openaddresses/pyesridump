@@ -15,6 +15,7 @@ class EsriDumper(object):
                  outSR=None, proxy=None,
                  start_with=None, geometry_precision=None,
                  paginate_oid=False,
+                 max_page_size=None,
                  pause_seconds=10, requests_to_pause=5, num_of_retry=5):
         self._layer_url = url
         self._query_params = extra_query_args or {}
@@ -27,6 +28,7 @@ class EsriDumper(object):
         self._startWith = start_with or 0
         self._precision = geometry_precision or 7
         self._paginate_oid = paginate_oid
+        self._max_page_size = max_page_size or 1000
 
         self._pause_seconds = pause_seconds
         self._requests_to_pause = requests_to_pause
@@ -300,7 +302,7 @@ class EsriDumper(object):
     def __iter__(self):
         query_fields = self._fields
         metadata = self.get_metadata()
-        page_size = min(1000, metadata.get('maxRecordCount', 500))
+        page_size = min(self._max_page_size, metadata.get('maxRecordCount', 500))
         geometry_type = metadata.get('geometryType')
 
         row_count = None

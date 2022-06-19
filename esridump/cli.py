@@ -71,6 +71,10 @@ def _parse_args(args):
         type=int,
         default=30,
         help="HTTP timeout in seconds, default 30")
+    parser.add_argument("-m", "--max-page-size",
+        type=int,
+        default=1000,
+        help="Maximum number of features to pull per batch, default 1000")
     parser.add_argument("--paginate-oid",
         dest='paginate_oid',
         action='store_true',
@@ -100,6 +104,7 @@ def main():
         request_geometry=args.request_geometry,
         proxy=args.proxy,
         timeout=args.timeout,
+        max_page_size=args.max_page_size,
         parent_logger=logger,
         paginate_oid=args.paginate_oid)
 
