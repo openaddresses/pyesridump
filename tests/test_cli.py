@@ -57,6 +57,7 @@ class TestEsriDumpCommandlineMain(unittest.TestCase):
         self.parse_return = mock.MagicMock()
         self.parse_return.url = 'http://example.com'
         self.parse_return.outfile = self.mock_outfile
+        self.parse_return.max_page_size = 1000
         self.parse_return.loglevel = logging.ERROR
         self.parse_return.jsonlines = False
         self.parse_return.fields = None
