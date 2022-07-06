@@ -19,7 +19,6 @@ pip install esridump
 This module will install a command line utility called `esri2geojson` that accepts an Esri REST layer endpoint URL and a filename to write the output GeoJSON to:
 
 ```bash
-#esri2geojson http://cookviewer1.cookcountyil.gov/ArcGIS/rest/services/cookVwrDynmc/MapServer/11 cookcounty.geojson
 esri2geojson https://maps.six.nsw.gov.au/arcgis/rest/services/sixmaps/MaritimePublic/MapServer/13 martime_maps.geojson
 ```
 
