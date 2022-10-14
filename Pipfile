@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 requests = "*"
+jsonschema = "*"
 esridump = {editable = true, path = "."}
 
 [dev-packages]
