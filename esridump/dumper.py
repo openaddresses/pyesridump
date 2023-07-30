@@ -169,6 +169,9 @@ class EsriDumper(object):
             for f in metadata['fields']:
                 if f.get('type') == 'esriFieldTypeOID':
                     oid_field_name = f['name']
+                elif f['alias'].lower() == 'objectid':
+                    oid_field_name = f['alias']
+                else:
                     break
 
         return oid_field_name
