@@ -65,6 +65,7 @@ class TestEsriDumpCommandlineMain(unittest.TestCase):
         self.parse_return.headers = []
         self.parse_return.params = []
         self.parse_return.proxy = None
+        self.parse_return.output_format = 'geojson'
         self.mock_parseargs.return_value = self.parse_return
 
         self.fake_url = 'http://example.com'
@@ -108,3 +109,13 @@ class TestEsriDumpCommandlineMain(unittest.TestCase):
         self.assertIn('where=foo%3Dbar', self.responses.calls[2].request.url)
         self.assertIn('where=%28OBJECTID+%3E%3D+70193+AND+OBJECTID+%3C%3D+70307%29+AND+%28foo%3Dbar%29', self.responses.calls[3].request.body)
         self.assertEqual(self.mock_outfile.write.call_count, 14)
+
+    """
+    def test_esri_json_output(self):
+        self.parse_return.jsonlines = True
+
+        esridump.cli.main()
+
+        # jsonlines won't have FeatureCollection wrapper
+        self.assertEqual(self.mock_outfile.write.call_count, 12)
+    """
