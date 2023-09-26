@@ -65,6 +65,7 @@ class TestEsriDumpCommandlineMain(unittest.TestCase):
         self.parse_return.headers = []
         self.parse_return.params = []
         self.parse_return.proxy = None
+        self.parse_return.output_format = 'geojson'
         self.mock_parseargs.return_value = self.parse_return
 
         self.fake_url = 'http://example.com'

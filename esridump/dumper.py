@@ -15,9 +15,9 @@ class EsriDumper(object):
                  timeout=None, fields=None, request_geometry=True,
                  outSR=None, proxy=None,
                  start_with=None, geometry_precision=None,
-                 paginate_oid=False,
-                 max_page_size=None,
-                 pause_seconds=10, requests_to_pause=5, num_of_retry=5):
+                 paginate_oid=False, max_page_size=None,
+                 pause_seconds=10, requests_to_pause=5,
+                 num_of_retry=5, output_format='geojson'):
         self._layer_url = url
         self._query_params = extra_query_args or {}
         self._headers = extra_headers or {}
@@ -34,6 +34,11 @@ class EsriDumper(object):
         self._pause_seconds = pause_seconds
         self._requests_to_pause = requests_to_pause
         self._num_of_retry = num_of_retry
+
+        if output_format not in ('geojson', 'esrijson'):
+            raise ValueError(f'Invalid output format. Expecting "geojson" or "esrijson", got {output_format}')
+
+        self._output_format = output_format
 
         if parent_logger:
             self._logger = parent_logger.getChild('esridump')
@@ -502,4 +507,7 @@ class EsriDumper(object):
             features = data.get('features')
 
             for feature in features:
-                yield esri2geojson(feature)
+                if self._output_format == 'geojson':
+                    yield esri2geojson(feature)
+                else:
+                    yield feature
