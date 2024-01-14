@@ -10,6 +10,50 @@ from esridump.errors import EsriDownloadError
 from esridump.state import DumperMode, DumperState, GeoQuery
 
 
+def handle_esri_errors(response, logger, error_message, dont_throw_on_error_return):
+    if response.status_code != 200:
+        raise EsriDownloadError('{}: {} HTTP {} {}'.format(
+            response.request.url,
+            error_message,
+            response.status_code,
+            response.text,
+        ))
+
+    try:
+        data = response.json()
+    except:
+        logger.error("Could not parse response from {} as JSON:\n\n{}".format(
+            response.request.url,
+            response.text,
+        ))
+        raise
+
+    if dont_throw_on_error_return:
+        return data
+
+    error = data.get('error')
+    if error:
+        raise EsriDownloadError("{}: {} {}" .format(
+            error_message,
+            error['message'],
+            ', '.join(error['details']),
+        ))
+
+    return data
+
+
+def simple_requester(method, url, logger, timeout, error_message, dont_throw_on_error_return=True, **kwargs):
+    try:
+        logger.debug("%s %s, args %s", method, url, kwargs.get('params') or kwargs.get('data'))
+        resp = requests.request(method, url, timeout=timeout, **kwargs)
+    except requests.exceptions.SSLError:
+        logger.warning("Retrying %s without SSL verification", url)
+        resp = requests.request(method, url, timeout=timeout, verify=False, **kwargs)
+
+    return handle_esri_errors(resp, logger, error_message, dont_throw_on_error_return)
+
+
+
 
 class EsriDumper(object):
     def __init__(self, url, parent_logger=None,
@@ -21,6 +65,7 @@ class EsriDumper(object):
                  max_page_size=None,
                  state=None,
                  update_state=False,
+                 requester=simple_requester,
                  pause_seconds=10, requests_to_pause=5,
                  num_of_retry=5, output_format='geojson'):
         self._layer_url = url
@@ -40,6 +85,7 @@ class EsriDumper(object):
         self._query_index = 1
         self._metadata = None
         self._update_state = update_state
+        self._requester = requester
 
         self._pause_seconds = pause_seconds
         self._requests_to_pause = requests_to_pause
@@ -55,22 +101,13 @@ class EsriDumper(object):
         else:
             self._logger = logging.getLogger('esridump')
 
-    def _request(self, method, url, **kwargs):
-        try:
-
-            if self._proxy:
-                url = self._proxy + url
-
-                params = kwargs.pop('params', None)
-                if params:
-                    url += '?' + urlencode(params)
-
-            self._logger.debug("%s %s, args %s", method, url,
-                               kwargs.get('params') or kwargs.get('data'))
-            return requests.request(method, url, timeout=self._http_timeout, **kwargs)
-        except requests.exceptions.SSLError:
-            self._logger.warning("Retrying %s without SSL verification", url)
-            return requests.request(method, url, timeout=self._http_timeout, verify=False, **kwargs)
+    def _request(self, method, url, error_message, **kwargs):
+        if self._proxy:
+            url = self._proxy + url
+            params = kwargs.pop('params', None)
+            if params:
+                url += '?' + urlencode(params)
+        return self._requester(method, url, self._logger, self._http_timeout, error_message, **kwargs)
 
     def _build_url(self, url=None):
         return self._layer_url + url if url else self._layer_url
@@ -103,33 +140,6 @@ class EsriDumper(object):
             complete_headers.update(headers)
         return complete_headers
 
-    def _handle_esri_errors(self, response, error_message):
-        if response.status_code != 200:
-            raise EsriDownloadError('{}: {} HTTP {} {}'.format(
-                response.request.url,
-                error_message,
-                response.status_code,
-                response.text,
-            ))
-
-        try:
-            data = response.json()
-        except:
-            self._logger.error("Could not parse response from {} as JSON:\n\n{}".format(
-                response.request.url,
-                response.text,
-            ))
-            raise
-
-        error = data.get('error')
-        if error:
-            raise EsriDownloadError("{}: {} {}" .format(
-                error_message,
-                error['message'],
-                ', '.join(error['details']),
-            ))
-
-        return data
 
     def can_handle_pagination(self, query_fields):
         check_args = self._build_query_args({
@@ -142,16 +152,14 @@ class EsriDumper(object):
         })
         headers = self._build_headers()
         query_url = self._build_url('/query')
-        response = self._request(
-            'POST', query_url, headers=headers, data=check_args)
 
         try:
-            data = response.json()
+            data = self._request('POST', query_url,
+                                 "Could not parse response from pagination check as JSON",
+                                 dont_throw_on_error_return=True,
+                                 headers=headers,
+                                 data=check_args)
         except:
-            self._logger.error("Could not parse response from pagination check %s as JSON:\n\n%s",
-                               response.request.url,
-                               response.text,
-                               )
             return False
 
         return data.get('error') and data['error']['message'] != "Failed to execute query."
@@ -169,10 +177,10 @@ class EsriDumper(object):
         })
         headers = self._build_headers()
         url = self._build_url()
-        response = self._request(
-            'GET', url, params=query_args, headers=headers)
-        metadata_json = self._handle_esri_errors(
-            response, "Could not retrieve layer metadata")
+        metadata_json = self._request('GET', url,
+                                      "Could not retrieve layer metadata",
+                                      params=query_args,
+                                      headers=headers)
         self._metadata = metadata_json
         return metadata_json
 
@@ -190,10 +198,10 @@ class EsriDumper(object):
         })
         headers = self._build_headers()
         url = self._build_url('/query')
-        response = self._request(
-            'GET', url, params=query_args, headers=headers)
-        count_json = self._handle_esri_errors(
-            response, "Could not retrieve row count")
+        count_json = self._request('GET', url,
+                                   "Could not retrieve row count",
+                                   params=query_args,
+                                   headers=headers)
         count = count_json.get('count')
         if count is None:
             raise EsriDownloadError("Server doesn't support returnCountOnly")
@@ -226,10 +234,11 @@ class EsriDumper(object):
         })
         headers = self._build_headers()
         url = self._build_url('/query')
-        response = self._request(
-            'GET', url, params=query_args, headers=headers)
-        metadata = self._handle_esri_errors(
-            response, "Could not retrieve min/max oid values")
+
+        metadata = self._request('GET', url,
+                                 "Could not retrieve min/max oid values",
+                                 params=query_args,
+                                 headers=headers)
 
         # Some servers (specifically version 10.11, it seems) will respond with SQL statements
         # for the attribute names rather than the requested field names, so pick the min and max
@@ -249,10 +258,10 @@ class EsriDumper(object):
         })
         headers = self._build_headers()
         url = self._build_url('/query')
-        response = self._request(
-            'GET', url, params=query_args, headers=headers)
-        oid_data = self._handle_esri_errors(
-            response, "Could not check min/max values")
+        oid_data = self._request('GET', url,
+                                 "Could not check min/max values",
+                                 params=query_args,
+                                 headers=headers)
         if not oid_data or not oid_data.get('objectIds') or min_value not in oid_data['objectIds'] or max_value not in oid_data['objectIds']:
             raise EsriDownloadError('Server returned invalid min/max')
 
@@ -266,10 +275,10 @@ class EsriDumper(object):
         })
         url = self._build_url('/query')
         headers = self._build_headers()
-        response = self._request(
-            'GET', url, params=query_args, headers=headers)
-        oid_data = self._handle_esri_errors(
-            response, "Could not retrieve object IDs")
+        oid_data = self._request('GET', url,
+                                 "Could not retrieve object IDs",
+                                 params=query_args,
+                                 headers=headers)
         oids = oid_data.get('objectIds')
         if not oids:
             raise EsriDownloadError("Server doesn't support returnIdsOnly")
@@ -367,8 +376,10 @@ class EsriDumper(object):
         })
         headers = self._build_headers()
         url = self._build_url('/query')
-        response = self._request('POST', url, data=query_args, headers=headers)
-        data = self._handle_esri_errors(response, f"unable to retrieve feature with {oid}")
+        data = self._request('POST', url,
+                             f"unable to retrieve feature with {oid}",
+                             data=query_args,
+                             headers=headers)
         if data is None or data.get('features') is None or len(data.get('features')) != 1:
             raise EsriDownloadError('Unable to query for oid field')
 
@@ -525,9 +536,11 @@ class EsriDumper(object):
                     time.sleep(self._pause_seconds)
                     self._logger.info(
                         "pause for %s seconds", self._pause_seconds)
-                response = self._request(verb, query_url, headers=headers, **request_args)
-                data = self._handle_esri_errors(
-                    response, "Could not retrieve this chunk of objects")
+
+                data = self._request(verb, query_url,
+                                     "Could not retrieve this chunk of objects",
+                                     headers=headers,
+                                     **request_args)
                 # reset the exception state.
                 download_exception = None
                 # get out of retry loop, as the request succeeded
