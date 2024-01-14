@@ -61,11 +61,9 @@ class EsriDumper(object):
                  timeout=None, fields=None, request_geometry=True,
                  outSR=None, proxy=None,
                  start_with=None, geometry_precision=None,
-                 paginate_oid=False,
-                 max_page_size=None,
-                 state=None,
-                 update_state=False,
-                 requester=simple_requester,
+                 paginate_oid=False, max_page_size=None,
+                 state=None, update_state=False,
+                 requester=simple_requester, use_only_get=False,
                  pause_seconds=10, requests_to_pause=5,
                  num_of_retry=5, output_format='geojson'):
         self._layer_url = url
@@ -86,6 +84,7 @@ class EsriDumper(object):
         self._metadata = None
         self._update_state = update_state
         self._requester = requester
+        self._use_only_get = use_only_get 
 
         self._pause_seconds = pause_seconds
         self._requests_to_pause = requests_to_pause
@@ -102,6 +101,14 @@ class EsriDumper(object):
             self._logger = logging.getLogger('esridump')
 
     def _request(self, method, url, error_message, **kwargs):
+        if method == 'POST' and self._use_only_get:
+            method = 'GET'
+
+        if method == 'POST':
+            if 'params' in kwargs:
+                kwargs['data'] = kwargs['params']
+                del kwargs['params']
+ 
         if self._proxy:
             url = self._proxy + url
             params = kwargs.pop('params', None)
@@ -158,7 +165,7 @@ class EsriDumper(object):
                                  "Could not parse response from pagination check as JSON",
                                  dont_throw_on_error_return=True,
                                  headers=headers,
-                                 data=check_args)
+                                 params=check_args)
         except:
             return False
 
@@ -378,7 +385,7 @@ class EsriDumper(object):
         url = self._build_url('/query')
         data = self._request('POST', url,
                              f"unable to retrieve feature with {oid}",
-                             data=query_args,
+                             params=query_args,
                              headers=headers)
         if data is None or data.get('features') is None or len(data.get('features')) != 1:
             raise EsriDownloadError('Unable to query for oid field')
@@ -525,9 +532,6 @@ class EsriDumper(object):
         download_exception = None
         data = None
 
-        request_arg_key = 'data' if verb == 'POST' else 'params'
-        request_args = { request_arg_key: query_args }
-
         #  try to do a request "num_of_retry" to increase the probability of fetching data successfully
         for retry in range(self._num_of_retry):
             try:
@@ -540,7 +544,7 @@ class EsriDumper(object):
                 data = self._request(verb, query_url,
                                      "Could not retrieve this chunk of objects",
                                      headers=headers,
-                                     **request_args)
+                                     params=query_args)
                 # reset the exception state.
                 download_exception = None
                 # get out of retry loop, as the request succeeded
