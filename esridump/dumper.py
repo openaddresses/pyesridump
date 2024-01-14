@@ -64,6 +64,7 @@ class EsriDumper(object):
                  paginate_oid=False, max_page_size=None,
                  state=None, update_state=False,
                  requester=simple_requester, use_only_get=False,
+                 json_arg='json',
                  pause_seconds=10, requests_to_pause=5,
                  num_of_retry=5, output_format='geojson'):
         self._layer_url = url
@@ -85,6 +86,7 @@ class EsriDumper(object):
         self._update_state = update_state
         self._requester = requester
         self._use_only_get = use_only_get 
+        self._json_arg = json_arg
 
         self._pause_seconds = pause_seconds
         self._requests_to_pause = requests_to_pause
@@ -155,7 +157,7 @@ class EsriDumper(object):
             'where': '1=1',
             'returnGeometry': 'false',
             'outFields': ','.join(query_fields),
-            'f': 'json',
+            'f': self._json_arg,
         })
         headers = self._build_headers()
         query_url = self._build_url('/query')
@@ -180,7 +182,7 @@ class EsriDumper(object):
             return self._metadata
 
         query_args = self._build_query_args({
-            'f': 'json',
+            'f': self._json_arg,
         })
         headers = self._build_headers()
         url = self._build_url()
@@ -201,7 +203,7 @@ class EsriDumper(object):
         query_args = self._build_query_args({
             'where': '1=1',
             'returnCountOnly': 'true',
-            'f': 'json',
+            'f': self._json_arg,
         })
         headers = self._build_headers()
         url = self._build_url('/query')
@@ -230,7 +232,7 @@ class EsriDumper(object):
     def _get_layer_min_max(self, oid_field_name):
         """ Find the min and max values for the OID field. """
         query_args = self._build_query_args({
-            'f': 'json',
+            'f': self._json_arg,
             'outFields': '',
             'outStatistics': json.dumps([
                 dict(statisticType='min', onStatisticField=oid_field_name,
@@ -261,7 +263,7 @@ class EsriDumper(object):
                 max_value
             ),
             'returnIdsOnly': 'true',
-            'f': 'json',
+            'f': self._json_arg,
         })
         headers = self._build_headers()
         url = self._build_url('/query')
@@ -278,7 +280,7 @@ class EsriDumper(object):
         query_args = self._build_query_args({
             'where': '1=1',  # So we get everything
             'returnIdsOnly': 'true',
-            'f': 'json',
+            'f': self._json_arg,
         })
         url = self._build_url('/query')
         headers = self._build_headers()
@@ -301,7 +303,7 @@ class EsriDumper(object):
             'returnGeometry': self._request_geometry,
             'outSR': self._outSR,
             'outFields': '*',
-            'f': 'json'
+            'f': self._json_arg,
         })
         headers = self._build_headers()
         url = self._build_url('/query')
@@ -379,7 +381,7 @@ class EsriDumper(object):
             'outFields': ','.join(query_fields or ['*']),
             'returnGeometry': self._request_geometry,
             'outSR': self._outSR,
-            'f': 'json',
+            'f': self._json_arg,
         })
         headers = self._build_headers()
         url = self._build_url('/query')
@@ -482,7 +484,7 @@ class EsriDumper(object):
                     'returnGeometry': self._request_geometry,
                     'outSR': self._outSR,
                     'outFields': ','.join(query_fields or ['*']),
-                    'f': 'json',
+                    'f': self._json_arg,
                 })
                 page_args.append(query_args)
         elif mode is DumperMode.OID_WHERE_CLAUSE:
@@ -500,7 +502,7 @@ class EsriDumper(object):
                     'returnGeometry': self._request_geometry,
                     'outSR': self._outSR,
                     'outFields': ','.join(query_fields or ['*']),
-                    'f': 'json',
+                    'f': self._json_arg,
                 })
                 page_args.append(query_args)
         elif mode is DumperMode.OID_ENUMERATION:
@@ -520,7 +522,7 @@ class EsriDumper(object):
                     'returnGeometry': self._request_geometry,
                     'outSR': self._outSR,
                     'outFields': ','.join(query_fields or ['*']),
-                    'f': 'json',
+                    'f': self._json_arg,
                 })
                 page_args.append(query_args)
         else:
