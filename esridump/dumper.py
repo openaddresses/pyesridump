@@ -42,7 +42,7 @@ def handle_esri_errors(response, logger, error_message, dont_throw_on_error_retu
     return data
 
 
-def simple_requester(method, url, logger, timeout, error_message, dont_throw_on_error_return=True, **kwargs):
+def simple_requester(method, url, logger, timeout, error_message, dont_throw_on_error_return=False, **kwargs):
     try:
         logger.debug("%s %s, args %s", method, url, kwargs.get('params') or kwargs.get('data'))
         resp = requests.request(method, url, timeout=timeout, **kwargs)
