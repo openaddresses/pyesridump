@@ -1,4 +1,4 @@
-FROM python:3.10-alpine3.19 as builder
+FROM python:3.12-alpine3.19 as builder
 
 RUN apk upgrade --update-cache && apk add --no-cache \
     build-base \
@@ -13,7 +13,7 @@ RUN pip install poetry \
     && poetry config virtualenvs.in-project true \
     && poetry install --no-cache
 
-FROM python:3.10-alpine3.19 as deploy
+FROM python:3.12-alpine3.19 as deploy
 
 ENV LANG C.UTF-8
 ENV PYTHONDONTWRITEBYTECODE 1
