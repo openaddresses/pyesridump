@@ -3,7 +3,9 @@ import requests
 import json
 import socket
 import time
-from six.moves.urllib.parse import urlencode
+from urllib.parse import urlencode
+
+import stamina
 
 from esridump import esri2geojson
 from esridump.errors import EsriDownloadError
@@ -45,6 +47,7 @@ class EsriDumper(object):
         else:
             self._logger = logging.getLogger('esridump')
 
+    @stamina.retry(on=Exception, attempts=4, wait_initial=10.0, wait_max=120.0, wait_jitter=2.0)
     def _request(self, method, url, **kwargs):
         try:
 
