@@ -373,7 +373,7 @@ class EsriDumper(object):
                 })
                 page_args.append(query_args)
             self._logger.info(
-                "Built %s requests using resultOffset method", len(page_args))
+                "Built %s requests of size %s using resultOffset method", len(page_args), page_size)
         else:
             # If not, we can still use the `where` argument to paginate
 
