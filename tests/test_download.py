@@ -421,3 +421,29 @@ class TestEsriDownload(unittest.TestCase):
         data = list(dump)
 
         self.assertEqual(0, len(data))
+
+    def test_esri_json_output(self):
+        self.add_fixture_response(
+            r'.*/\?f=json.*',
+            'us-ca-carson/us-ca-carson-metadata.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnCountOnly=true.*',
+            'us-ca-carson/us-ca-carson-count-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*returnIdsOnly=true.*',
+            'us-ca-carson/us-ca-carson-ids-only.json',
+            method='GET',
+        )
+        self.add_fixture_response(
+            '.*query.*',
+            'us-ca-carson/us-ca-carson-0.json',
+            method='POST',
+        )
+
+        dump = EsriDumper(self.fake_url, output_format='esrijson')
+        data = list(dump)
+        self.assertIn('attributes', data[0], message='Data does not have "attributes" key with output format == esrijson')
