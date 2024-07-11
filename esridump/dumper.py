@@ -330,7 +330,7 @@ class EsriDumper(object):
     def __iter__(self):
         query_fields = self._fields
         metadata = self.get_metadata()
-        page_size = min(self._max_page_size,
+        page_size = max(self._max_page_size,
                         metadata.get('maxRecordCount', 500))
         geometry_type = metadata.get('geometryType')
 
@@ -373,7 +373,7 @@ class EsriDumper(object):
                 })
                 page_args.append(query_args)
             self._logger.info(
-                "Built %s requests using resultOffset method", len(page_args))
+                "Built %s requests of size %s using resultOffset method", len(page_args), page_size)
         else:
             # If not, we can still use the `where` argument to paginate
 
