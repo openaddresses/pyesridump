@@ -4,8 +4,10 @@ from six.moves import urllib
 import logging
 import json
 import sys
+import os
 
 from esridump import EsriDumper
+from esridump.state import DumperState
 
 def _collect_headers(strings):
     headers = {}
@@ -30,7 +32,7 @@ def _parse_args(args):
     parser.add_argument("url",
         help="Esri layer URL")
     parser.add_argument("outfile",
-        type=argparse.FileType('w'),
+        type=argparse.FileType('a'),
         help="Output file name (use - for stdout)")
     parser.add_argument("--proxy",
         help="Proxy string to send requests through ie: https://example.com/proxy.ashx?<SERVER>")
@@ -73,8 +75,9 @@ def _parse_args(args):
         help="HTTP timeout in seconds, default 30")
     parser.add_argument("-m", "--max-page-size",
         type=int,
-        default=1000,
-        help="Maximum number of features to pull per batch, default 1000")
+        default=-1,
+        help="Maximum number of features to pull per batch, "
+             "default -1 (means pick from the layer metadata or 1000, whichever is higher)")
     parser.add_argument("--paginate-oid",
         dest='paginate_oid',
         action='store_true',
@@ -85,11 +88,41 @@ def _parse_args(args):
         action='store',
         default='geojson',
         help="The JSON output format of the feature data")
+    parser.add_argument("-c", "--to-continue",
+        action='store_true',
+        default=False,
+        help="Save the state of retrieval to a file, to allow for download continuation")
 
     return parser.parse_args(args)
 
 def main():
     args = _parse_args(sys.argv[1:])
+
+    state_filename = None
+    state = None
+    if args.to_continue:
+        if args.outfile is sys.stdout:
+            print('ERROR: Download continuation is not allowed when writing to stdout')
+            sys.exit(1)
+
+        outfile_name = args.outfile.name
+        base_name = os.path.basename(outfile_name)
+        dirname = os.path.dirname(outfile_name)
+        state_filename = os.path.join(dirname, base_name + '.state')
+
+        if os.path.exists(state_filename):
+            with open(state_filename, 'r') as f:
+                state = DumperState.decode(f.read())
+        elif args.outfile.tell() != 0:
+            print('ERROR: Download continuation is enabled and a non empty output file exists '\
+                  'but state file is not present, Download was alredy complete?')
+            sys.exit(1)
+    else:
+        if args.outfile.tell() != 0:
+            print('ERROR: File already exists and is non empty. Delete it?')
+            sys.exit(1)
+
+
     headers = _collect_headers(args.headers)
     params = _collect_params(args.params)
 
@@ -103,6 +136,8 @@ def main():
     requested_fields = args.fields.split(',') if args.fields else None
 
     dumper = EsriDumper(args.url,
+        state=state,
+        update_state=args.to_continue,
         extra_query_args=params,
         extra_headers=headers,
         fields=requested_fields,
@@ -114,22 +149,34 @@ def main():
         paginate_oid=args.paginate_oid,
         output_format=args.output_format)
 
-    if args.jsonlines:
-        for feature in dumper:
-            args.outfile.write(json.dumps(feature))
-            args.outfile.write('\n')
-    else:
-        args.outfile.write('{"type":"FeatureCollection","features":[\n')
-        feature_iter = iter(dumper)
-        try:
-            feature = next(feature_iter)
-            while True:
+    try:
+        if args.jsonlines:
+            for feature in dumper:
                 args.outfile.write(json.dumps(feature))
+                args.outfile.write('\n')
+        else:
+            if not args.to_continue or args.outfile.tell() == 0:
+                args.outfile.write('{"type":"FeatureCollection","features":[\n')
+            feature_iter = iter(dumper)
+            try:
                 feature = next(feature_iter)
-                args.outfile.write(',\n')
-        except StopIteration:
-            args.outfile.write('\n')
-        args.outfile.write(']}')
+                while True:
+                    args.outfile.write(json.dumps(feature))
+                    feature = next(feature_iter)
+                    args.outfile.write(',\n')
+            except StopIteration:
+                args.outfile.write('\n')
+            args.outfile.write(']}')
+        if args.to_continue and os.path.exists(state_filename):
+            os.unlink(state_filename)
+    except: # noqa
+        if args.to_continue:
+            logger.info('saving state file')
+            with open(state_filename, 'w') as f:
+                f.write(dumper._state.encode())
+            logger.info('Done saving state file')
+        raise
+
 
 if __name__ == '__main__':
     main()

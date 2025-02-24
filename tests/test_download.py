@@ -14,6 +14,15 @@ class TestEsriDownload(unittest.TestCase):
 
         self.fake_url = 'http://example.com'
 
+
+    def get_dumper(self, **kwargs):
+        base_args = {
+            'pause_seconds': 0.01,
+            'max_page_size': 500,
+        }
+        base_args.update(kwargs)
+        return EsriDumper(self.fake_url, **base_args)
+
     def tearDown(self):
         self.responses.stop()
         self.responses.reset()
@@ -50,7 +59,7 @@ class TestEsriDownload(unittest.TestCase):
             method='POST',
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = self.get_dumper()
         data = list(dump)
 
         self.assertEqual(6, len(data))
@@ -87,7 +96,7 @@ class TestEsriDownload(unittest.TestCase):
             method='POST',
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = self.get_dumper()
         data = list(dump)
 
         self.assertEqual(1, len(data))
@@ -109,7 +118,7 @@ class TestEsriDownload(unittest.TestCase):
             method='POST',
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = self.get_dumper()
         data = list(dump)
 
         self.assertEqual(1000, len(data))
@@ -146,7 +155,7 @@ class TestEsriDownload(unittest.TestCase):
             method='POST',
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = self.get_dumper()
         data = list(dump)
 
         self.assertEqual(15, len(data))
@@ -183,7 +192,7 @@ class TestEsriDownload(unittest.TestCase):
             method='POST',
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = self.get_dumper()
         data = list(dump)
 
         self.assertEqual(10, len(data))
@@ -215,7 +224,7 @@ class TestEsriDownload(unittest.TestCase):
             method='POST',
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = self.get_dumper()
         data = list(dump)
 
         self.assertEqual(15, len(data))
@@ -242,7 +251,7 @@ class TestEsriDownload(unittest.TestCase):
             method='POST',
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = self.get_dumper()
         data = list(dump)
 
         self.assertEqual(43, len(data))
@@ -269,7 +278,7 @@ class TestEsriDownload(unittest.TestCase):
             method='POST',
         )
 
-        dump = EsriDumper(self.fake_url, proxy='http://proxy?')
+        dump = self.get_dumper(proxy='http://proxy?')
         data = list(dump)
 
         self.assertEqual(43, len(data))
@@ -297,7 +306,7 @@ class TestEsriDownload(unittest.TestCase):
             body=socket.timeout(),
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = self.get_dumper()
         with self.assertRaisesRegex(EsriDownloadError, "Timeout when connecting to URL"):
             list(dump)
 
@@ -323,7 +332,7 @@ class TestEsriDownload(unittest.TestCase):
             body=ValueError(),
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = self.get_dumper()
         with self.assertRaisesRegex(EsriDownloadError, "Could not parse JSON"):
             list(dump)
 
@@ -349,7 +358,7 @@ class TestEsriDownload(unittest.TestCase):
             body=Exception(),
         )
 
-        dump = EsriDumper(self.fake_url, pause_seconds=0.01)
+        dump = self.get_dumper(pause_seconds=0.01)
         with self.assertRaisesRegex(EsriDownloadError, "Could not connect to URL"):
             list(dump)
 
@@ -395,7 +404,7 @@ class TestEsriDownload(unittest.TestCase):
             method='GET',
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = self.get_dumper()
         data = list(dump)
 
         # Note that this count is entirely fake because of the deduping happening
@@ -417,7 +426,7 @@ class TestEsriDownload(unittest.TestCase):
             method='GET',
         )
 
-        dump = EsriDumper(self.fake_url)
+        dump = self.get_dumper()
         data = list(dump)
 
         self.assertEqual(0, len(data))
@@ -446,4 +455,4 @@ class TestEsriDownload(unittest.TestCase):
 
         dump = EsriDumper(self.fake_url, output_format='esrijson')
         data = list(dump)
-        self.assertIn('attributes', data[0], message='Data does not have "attributes" key with output format == esrijson')
+        self.assertIn('attributes', data[0], 'Data does not have "attributes" key with output format == esrijson')

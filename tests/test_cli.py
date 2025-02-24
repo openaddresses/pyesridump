@@ -58,6 +58,9 @@ class TestEsriDumpCommandlineMain(unittest.TestCase):
         self.parse_return.url = 'http://example.com'
         self.parse_return.outfile = self.mock_outfile
         self.parse_return.max_page_size = 1000
+        self.parse_return.pause_seconds = 0.01
+        self.parse_return.num_of_retry = 0
+        self.parse_return.requests_to_pause = 1000
         self.parse_return.loglevel = logging.ERROR
         self.parse_return.jsonlines = False
         self.parse_return.fields = None
